@@ -37,9 +37,6 @@ if uploaded:
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
 
-    # Supprimer 29 février si présent
-    df_obs = df_obs[~((df_obs["month"] == 2) & (df_obs["day"] == 29))]
-
     # -------- RMSE sur percentiles --------
     def rmse(a, b):
         return np.sqrt(np.nanmean((a - b) ** 2))
@@ -108,7 +105,7 @@ if uploaded:
         counts, _ = np.histogram(df_temp["temp"], bins=bins)
         return counts
 
-    bins = np.arange(0, 42, 2)
+    bins = np.arange(-10, 40, 1)
 
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
