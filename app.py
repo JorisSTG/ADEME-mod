@@ -213,8 +213,27 @@ if uploaded:
         st.line_chart(df_cdf_scenarios)
 
     # Heatmap des percentiles par mois et scénario
-    st.subheader("Heatmap des percentiles par mois et scénario")
+    # Heatmap des écarts par rapport au modèle de référence
+    st.subheader("Heatmap des écarts des percentiles par mois et scénario (vs modèle)")
+
+    # Création d'un dictionnaire Mois x Percentile pour le modèle de référence
+    ref_model = {}
+    for mois in range(1, 13):
+        obs_mois = obs_mois_all[mois-1]
+        mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
+        for i, p in enumerate(percentiles_list):
+            ref_model[(mois, f"P{p}")] = np.percentile(mod_mois, p)
+
+# Boucle sur les percentiles
     for p in percentiles_list:
-        df_pivot = df_scenarios[df_scenarios["Percentile"]==f"P{p}"].pivot(index="Scénario", columns="Mois", values="Valeur")
-        st.write(f"Percentile P{p}")
+    # Copie du DataFrame pour éviter de modifier l'original
+        df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
+    
+    # Calcul de l'écart vs modèle
+        df_ecart["Ecart"] = df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
+    
+    # Pivot pour la heatmap
+        df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
+    
+        st.write(f"Percentile {p} - Écart vs modèle")
         st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
