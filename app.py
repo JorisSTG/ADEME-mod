@@ -161,7 +161,7 @@ if uploaded:
 
         ax.bar(
             df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
-            width=0.4, label=f"Projection TRACC {scenario_sel}/{ville_sel}", color="blue"
+            width=0.4, label=f"Projection TRACC +{scenario_sel}/{ville_sel}", color="blue"
         )
         ax.bar(
             df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
@@ -196,13 +196,13 @@ if uploaded:
         ax.plot(
             np.linspace(0, 100, 100),
             mod_percentiles_100,
-            label=f"Modèle '{scenario_sel}'",
+            label="Modèle",
             color="red"
         )
         ax.plot(
             np.linspace(0, 100, 100),
             obs_percentiles_100,
-            label="Observations",
+            label=f"TRACC +{scenario_sel}/{ville_sel}",
             color="blue"  
         )
     
@@ -221,8 +221,8 @@ if uploaded:
         mod_p = np.percentile(mod_mois, percentiles_list)
         df_p = pd.DataFrame({
             "Percentile": [f"P{p}" for p in percentiles_list],
-            "Obs": obs_p,
-            "Mod": mod_p
+            f"TRACC +{scenario_sel}/{ville_sel}": obs_p,
+            "Modèle": mod_p
         }).round(2)
     
         st.write(f"Mois {mois} - Percentiles")
