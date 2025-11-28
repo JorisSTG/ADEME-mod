@@ -52,7 +52,7 @@ if uploaded:
     df_obs["day"] = df_obs["time"].dt.day
 
    # -------- RMSE et précision sur percentiles --------
-   def rmse(a, b):
+    def rmse(a, b):
     """
     Calcul du RMSE entre deux séries après tri.
     Compare les distributions et non les pas de temps exacts.
