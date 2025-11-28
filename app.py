@@ -113,13 +113,7 @@ if uploaded:
 
     df_stats = pd.DataFrame(stats)
     st.subheader("Nombre d'heures sup/inf et écart obs-mod")
-    st.dataframe(df_stats)
-
-    # -------- Export CSV --------
-    df_rmse.to_csv("RMSE_percentiles.csv", index=False)
-    df_stats.to_csv("Heures_seuils.csv", index=False)
-    st.download_button("Télécharger RMSE", "RMSE_percentiles.csv", "text/csv")
-    st.download_button("Télécharger stats heures", "Heures_seuils.csv", "text/csv")
+    st.dataframe(df_stats, hide_index=True)
 
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
@@ -146,7 +140,7 @@ if uploaded:
             "Mod": mod_p
         }).round(2)
         st.write(f"Mois {mois} - Percentiles")
-        st.dataframe(df_p)
+        st.dataframe(df_p, hide_index=True)
 
         # Stockage pour bilan
         for i, p in enumerate(percentiles_list):
@@ -233,4 +227,4 @@ if uploaded:
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
     
         st.write(f"Percentile {p} - Écart vs modèle")
-        st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
+        st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"), hide_index=True)
