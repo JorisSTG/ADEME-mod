@@ -53,20 +53,12 @@ if uploaded:
 
    # -------- RMSE et précision sur percentiles --------
     def rmse(a, b):
-    """
-    Calcul du RMSE entre deux séries après tri.
-    Compare les distributions et non les pas de temps exacts.
-    """
         min_len = min(len(a), len(b))
         a_sorted = np.sort(a[:min_len])
         b_sorted = np.sort(b[:min_len])
         return np.sqrt(np.nanmean((a_sorted - b_sorted) ** 2))
 
     def precision_normale(rmse_val, sigma_obs):
-    """
-    Transforme le RMSE en précision (%) selon une loi normale centrée réduite.
-    0 RMSE => 100%, ±1 sigma => environ 32% de perte de précision.
-    """
         if sigma_obs == 0:
             return 100.0  # pas de variabilité, modèle parfait
         z = rmse_val / sigma_obs
@@ -74,7 +66,7 @@ if uploaded:
         precision = 100 * (1 - prob)
         return round(precision, 2)
 
-# -------- Boucle sur les mois --------
+    # -------- Boucle sur les mois --------
     results_rmse = []
     obs_mois_all = []
     start_idx_model = 0
