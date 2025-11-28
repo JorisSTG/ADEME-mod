@@ -215,14 +215,26 @@ if uploaded:
         st.write(f"Mois {mois}")
         st.line_chart(df_cdf_scenarios)
 
-    # Heatmap des percentiles par mois et scénario
-    st.subheader("Heatmap des percentiles par mois et scénario (écart vs modèle)")
+    # Heatmap des percentiles par mois et scénario (écart vs modèle de référence)
+    st.subheader("Heatmap des percentiles par mois et scénario")
+
+    # Définir le scénario de référence (ex: le scénario de base ou le modèle CSV)
+    scenario_ref = "Ref"  # remplacer par le nom exact de ton scénario de référence
+
+    # Extraire les valeurs de référence
+    df_ref = df_scenarios[df_scenarios["Scénario"] == scenario_ref][["Mois", "Percentile", "Valeur"]].copy()
+    df_ref.rename(columns={"Valeur": "Ref_Modele"}, inplace=True)
+
+    # Ajouter la colonne Ref_Modele à tous les scénarios
+    df_scenarios = df_scenarios.merge(df_ref, on=["Mois", "Percentile"], how="left")
 
     for p in percentiles_list:
-        # Calculer l'écart par rapport au modèle de référence
+        # Filtrer pour le percentile courant
         df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
-        df_ecart["Ecart"] = df_ecart["Valeur"] - df_ecart["Ref_Modele"]  # Ref_Modele = valeur de référence à soustraire
-        # Pivot pour la heatmap
+        # Calculer l'écart par rapport au modèle de référence
+        df_ecart["Ecart"] = df_ecart["Valeur"] - df_ecart["Ref_Modele"]
+
+        # Pivot pour la heatmap (Scénario x Mois)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart")
 
         st.write(f"Percentile P{p} - Écart vs modèle")
