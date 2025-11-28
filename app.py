@@ -6,6 +6,7 @@ Created on Fri Nov 28 16:59:26 2025
 @author: saint-genesj
 """
 
+
 import streamlit as st
 import pandas as pd
 import xarray as xr
@@ -13,8 +14,10 @@ import glob
 import os
 import numpy as np
 
-st.title("Comparaison modèle / Observations par scénario et ville")
 
+
+
+st.title("Comparaison scénario modèle / Observations (année type)")
 # -------- Paramètres --------
 base_folder = "ADEME"  # dossier racine où sont stockés les sous-dossiers des scénarios
 scenarios = ["2", "2-7", "4", "2_VC", "2-7_VC", "4_VC"]  # noms des sous-dossiers
@@ -22,12 +25,9 @@ villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNANE", "NANCY", "RENNES", "TOURS"
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]  # année type
 percentiles_list = [1, 5, 10, 50, 90, 95, 99]
 
-# -------- Sélection scénario et ville --------
+# -------- Choix scénario et ville --------
 scenario_sel = st.selectbox("Choisir le scénario :", scenarios)
 ville_sel = st.selectbox("Choisir la ville :", villes)
-
-# Chemin vers le NetCDF
-nc_file_sel = os.path.join(base_folder, scenario_sel, f"{ville_sel}.nc")
 
 # -------- Upload CSV modèle --------
 uploaded = st.file_uploader("Dépose ton fichier CSV modèle (colonne unique T) :", type=["csv"])
@@ -41,15 +41,20 @@ if uploaded:
     model_values = pd.read_csv(uploaded, header=0).iloc[:, 0].values
 
     # Lecture NetCDF
+    nc_file_sel = os.path.join(base_folder, scenario_sel, f"{ville_sel}.nc")
     ds_obs = xr.open_dataset(nc_file_sel, decode_times=True)
-    obs_series = ds_obs["T2m"].to_series()
+    if "T" not in ds_obs:
+        st.error("Le NetCDF n'a pas de variable 'T'")
+        st.stop()
+
+    obs_series = ds_obs["T"].to_series()
     df_obs = obs_series.reset_index()
-    df_obs.rename(columns={"T2m": "T2m", "time": "time"}, inplace=True)
+    df_obs.rename(columns={"T": "T", "time": "time"}, inplace=True)
     df_obs["year"] = df_obs["time"].dt.year
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
 
-    # Supprimer 29 février
+    # Supprimer 29 février si présent
     df_obs = df_obs[~((df_obs["month"] == 2) & (df_obs["day"] == 29))]
 
     # -------- RMSE sur percentiles --------
@@ -61,24 +66,27 @@ if uploaded:
     start_idx_model = 0
 
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
+        # Modèle pour ce mois
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
         mod_sorted = np.sort(mod_mois)
 
-        # Observations pour ce mois (1 seule année ici)
-        vals = df_obs[df_obs["month"] == mois]["T2m"].values
-        obs_mois_all.append(np.sort(vals))
+        # Observations pour ce mois sur l'année type
+        obs_mois_vals = df_obs[df_obs["month"] == mois]["T"].values
+        obs_sorted = np.sort(obs_mois_vals)
+        obs_mois_all.append(obs_sorted)
 
-        min_len = min(len(mod_sorted), len(vals))
-        val_rmse = rmse(mod_sorted[:min_len], np.sort(vals)[:min_len])
+        # RMSE simple (modèle vs obs)
+        min_len = min(len(mod_sorted), len(obs_sorted))
+        val_rmse = rmse(mod_sorted[:min_len], obs_sorted[:min_len])
         results_rmse.append({"Mois": mois, "RMSE_percentiles": round(val_rmse, 2)})
 
         start_idx_model += nb_heures
 
     df_rmse = pd.DataFrame(results_rmse)
-    st.subheader("RMSE sur les percentiles mensuels")
+    st.subheader("RMSE mensuels")
     st.dataframe(df_rmse)
 
-    # -------- Nombre moyen d'heures sup/inf et écart obs-mod --------
+    # -------- Nombre d'heures sup/inf et écart obs-mod --------
     t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
     t_inf_thresholds_list = [float(x.strip()) for x in t_inf_thresholds.split(",")]
     stats = []
@@ -89,34 +97,34 @@ if uploaded:
 
         # Heures supérieures
         for seuil in t_sup_thresholds_list:
-            nb_heures_obs = np.sum(obs_mois > seuil)
+            heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
-            ecart = nb_heures_obs - nb_heures_mod
+            ecart = heures_obs - nb_heures_mod
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Supérieur",
-                "Nb_heures_obs": round(nb_heures_obs,2),
+                "Nb_heures_obs": round(heures_obs,2),
                 "Nb_heures_mod": round(nb_heures_mod,2),
                 "Ecart_obs_mod": round(ecart,2)
             })
 
         # Heures inférieures
         for seuil in t_inf_thresholds_list:
-            nb_heures_obs = np.sum(obs_mois < seuil)
+            heures_obs = np.sum(obs_mois < seuil)
             nb_heures_mod = np.sum(mod_mois < seuil)
-            ecart = nb_heures_obs - nb_heures_mod
+            ecart = heures_obs - nb_heures_mod
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Inférieur",
-                "Nb_heures_obs": round(nb_heures_obs,2),
+                "Nb_heures_obs": round(heures_obs,2),
                 "Nb_heures_mod": round(nb_heures_mod,2),
                 "Ecart_obs_mod": round(ecart,2)
             })
 
     df_stats = pd.DataFrame(stats)
-    st.subheader("Nombre d'heures par seuil et écart obs-mod")
+    st.subheader("Nombre d'heures sup/inf et écart obs-mod")
     st.dataframe(df_stats)
 
     # -------- Export CSV --------
@@ -125,23 +133,23 @@ if uploaded:
     st.download_button("Télécharger RMSE", "RMSE_percentiles.csv", "text/csv")
     st.download_button("Télécharger stats heures", "Heures_seuils.csv", "text/csv")
 
-    # -------- Graphiques CDF et tableaux percentiles --------
+    # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
+
     df_percentiles_all = []
 
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
         mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
 
-        obs_percentiles_100 = np.percentile(obs_mois, np.linspace(0, 100, 100))
-        mod_percentiles_100 = np.percentile(mod_mois, np.linspace(0, 100, 100))
+        obs_percentiles_100 = np.percentile(obs_mois, np.linspace(0,100,100))
+        mod_percentiles_100 = np.percentile(mod_mois, np.linspace(0,100,100))
 
-        # Graphique CDF
         df_cdf = pd.DataFrame({"Obs": obs_percentiles_100, "Mod": mod_percentiles_100}).round(2)
         st.write(f"Mois {mois} - Fonction de répartition")
         st.line_chart(df_cdf)
 
-        # Tableau percentiles
+        # Percentiles clés
         obs_p = np.percentile(obs_mois, percentiles_list)
         mod_p = np.percentile(mod_mois, percentiles_list)
         df_p = pd.DataFrame({
@@ -152,7 +160,7 @@ if uploaded:
         st.write(f"Mois {mois} - Percentiles")
         st.dataframe(df_p)
 
-        # Stockage pour tableau bilan
+        # Stockage pour bilan
         for i, p in enumerate(percentiles_list):
             df_percentiles_all.append({
                 "Mois": mois,
@@ -161,7 +169,7 @@ if uploaded:
                 "Mod": mod_p[i]
             })
 
-    # -------- Tableau bilan (plus chaud / plus froid) --------
+    # -------- Tableau bilan chaud/froid --------
     st.subheader("Bilan modèle vs Observations (chaud/froid)")
     df_bilan = pd.DataFrame(df_percentiles_all).round(2)
     df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
@@ -169,11 +177,53 @@ if uploaded:
     df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
 
     def color_map(val):
-        if pd.isna(val):
-            return ""
-        if val < 0:
-            return f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
-        else:
-            return f"background-color: rgba(255,0,0,{min(val/5,1)})"
+        if pd.isna(val): return ""
+        if val < 0: return f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
+        else: return f"background-color: rgba(255,0,0,{min(val/5,1)})"
 
     st.dataframe(df_bilan_pivot.style.applymap(color_map))
+
+    # -------- Section multi-scénarios pour la ville --------
+    st.subheader(f"Comparaison multi-scénarios pour {ville_sel}")
+
+    df_percentiles_scenarios = []
+    for scenario in scenarios:
+        nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
+        ds = xr.open_dataset(nc_file, decode_times=True)
+        temps = ds["T"].to_series().values
+
+        start_idx = 0
+        for mois, nb_heures in enumerate(heures_par_mois, start=1):
+            obs_mois = temps[start_idx:start_idx + nb_heures]
+            obs_p = np.percentile(obs_mois, percentiles_list)
+            for i, p in enumerate(percentiles_list):
+                df_percentiles_scenarios.append({
+                    "Scénario": scenario,
+                    "Mois": mois,
+                    "Percentile": f"P{p}",
+                    "Valeur": round(obs_p[i],2)
+                })
+            start_idx += nb_heures
+
+    df_scenarios = pd.DataFrame(df_percentiles_scenarios)
+
+    # Graphique CDF comparatif par mois
+    st.subheader("CDF comparatif par scénario")
+    for mois in range(1,13):
+        cdf_dict = {}
+        for scenario in scenarios:
+            nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
+            ds = xr.open_dataset(nc_file, decode_times=True)
+            temps = ds["T"].to_series().values
+            obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
+            cdf_dict[scenario] = np.percentile(obs_mois, np.linspace(0,100,100))
+        df_cdf_scenarios = pd.DataFrame(cdf_dict).round(2)
+        st.write(f"Mois {mois}")
+        st.line_chart(df_cdf_scenarios)
+
+    # Heatmap des percentiles par mois et scénario
+    st.subheader("Heatmap des percentiles par mois et scénario")
+    for p in percentiles_list:
+        df_pivot = df_scenarios[df_scenarios["Percentile"]==f"P{p}"].pivot(index="Scénario", columns="Mois", values="Valeur")
+        st.write(f"Percentile P{p}")
+        st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
