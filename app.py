@@ -109,6 +109,15 @@ if uploaded:
     bin_centers_int = bin_centers.astype(int)  # pour l’ordre
     bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
 
+        # -------- Graphes en barres pour les plages de température (1°C) --------
+    st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
+
+    # Bins fixes
+    bins = np.arange(-5, 46, 1)          # -5 à 45
+    bin_centers = (bins[:-1] + bins[1:]) / 2   # valeurs numériques
+    bin_centers_int = bin_centers.astype(int)  # pour l’ordre
+    bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
+
     def count_days_in_bins_hourly(temp_hourly, bins):
         """Moyenne journalière puis histogramme."""
         df = pd.DataFrame({"temp": temp_hourly})
@@ -148,7 +157,7 @@ if uploaded:
         )
 
         # IMPORTANT : on utilise la colonne numérique mais on montre les labels
-        chart_data = df_plot_melt.rename(columns={"Temp_Num": "Température en °C"})
+        chart_data = df_plot_melt.rename(columns={"Temp_Num": "Temp"})
 
         st.subheader(f"Mois {mois} - Nombre de jours par température")
 
@@ -162,7 +171,6 @@ if uploaded:
 
         # Affichage des labels sous forme de texte
         st.caption("Labels températures : " + ", ".join(df_plot["Température (°C)"].tolist()))
-
 
 
     # -------- Graphiques CDF et percentiles --------
