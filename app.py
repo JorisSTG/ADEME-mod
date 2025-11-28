@@ -98,7 +98,6 @@ if uploaded:
     st.dataframe(df_stats, hide_index=True)
 
     # -------- Graphes en barres pour les plages de température --------
-    # -------- Graphes en barres pour les plages de température --------
     def count_days_in_bins(temps_series, bins):
         df_temp = pd.DataFrame({"temp": temps_series})
         df_temp["day"] = df_temp.index // 24  # Supposons 24 valeurs par jour
@@ -115,18 +114,32 @@ if uploaded:
         obs_days_in_bins = count_days_in_bins(obs_mois, bins)
         mod_days_in_bins = count_days_in_bins(mod_mois, bins)
 
-        # Créer un DataFrame pour le graphique
+    # Créer un DataFrame pour le graphique
         df_plot = pd.DataFrame({
             "Plage (°C)": [f"{bins[i]}-{bins[i+1]}" for i in range(len(bins)-1)],
+            "Début plage": bins[:-1],  # Pour le tri
             "Observations": obs_days_in_bins,
             "Modèle": mod_days_in_bins
         })
 
-        # Trier les plages par ordre croissant
-        df_plot = df_plot.sort_values(by="Plage (°C)")
+    # Trier par la colonne "Début plage"
+        df_plot = df_plot.sort_values(by="Début plage")
+
+    # Supprimer la colonne de tri
+        df_plot = df_plot.drop(columns=["Début plage"])
+
+    # Transformer le DataFrame pour avoir les barres côte à côte
+        df_plot = df_plot.melt(id_vars="Plage (°C)", var_name="Type", value_name="Nombre de jours")
 
         st.subheader(f"Mois {mois} - Nombre de jours par plage de température")
-        st.bar_chart(df_plot.set_index("Plage (°C)"), use_container_width=True)
+        st.bar_chart(
+            df_plot,
+            x="Plage (°C)",
+            y="Nombre de jours",
+            color="Type",
+            use_container_width=True
+        )
+
 
 
     # -------- Graphiques CDF et percentiles --------
