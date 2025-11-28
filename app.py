@@ -201,8 +201,51 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
+    # ---- Calcul de la précision par créneau de température ----
+    def rmse_hours(obs_counts, mod_counts):
+        """RMSE sur les heures par créneau de température."""
+        min_len = min(len(obs_counts), len(mod_counts))
+        return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
 
+    def precision_hours(rmse_val, sigma_obs):
+        """Précision en % sur les créneaux de température via loi normale."""
+        if sigma_obs == 0:
+            return 100.0
+        z = rmse_val / sigma_obs
+        return round(100 * (1 - norm.cdf(z)), 2)
 
+    # ---- Calcul et affichage ----
+    results_temp = []
+
+    for mois in range(1, 13):
+        obs_hourly = obs_mois_all[mois-1]
+        idx0 = sum(heures_par_mois[:mois-1])
+        idx1 = sum(heures_par_mois[:mois])
+        mod_hourly = model_values[idx0:idx1]
+
+        # Comptage des heures par créneau
+        obs_counts = count_hours_in_bins(obs_hourly, bins)
+        mod_counts = count_hours_in_bins(mod_hourly, bins)
+
+        # RMSE et sigma sur les counts
+        val_rmse = rmse_hours(obs_counts, mod_counts)
+        sigma_obs = np.std(obs_counts, ddof=1)
+
+        # précision en %
+        pct_precision = precision_hours(val_rmse, sigma_obs)
+
+        results_temp.append({
+            "Mois": mois,
+            "RMSE heures": round(val_rmse,2),
+            "Sigma_obs": round(sigma_obs,2),
+            "Précision (%)": pct_precision
+        })
+
+    df_temp_precision = pd.DataFrame(results_temp)
+    st.subheader(f"Précision du modèle par créneau horaire de température ({scenario_sel}/{ville_sel})")
+    st.dataframe(df_temp_precision, hide_index=True)
+
+    
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
     df_percentiles_all = []
