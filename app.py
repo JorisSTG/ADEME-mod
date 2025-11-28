@@ -303,4 +303,4 @@ if uploaded:
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
         st.write(f"Percentile {p} - Écart vs modèle")
-        st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
+        st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm").format("{:.2f}"))
