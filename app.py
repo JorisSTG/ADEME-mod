@@ -21,7 +21,7 @@ plt.rcParams.update({
 })
 
 
-st.title("Comparaison Modèle / Scénario TRACC (année type)")
+st.title("Comparaison Modèle / TRACC")
 
 # -------- Paramètres --------
 scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]
