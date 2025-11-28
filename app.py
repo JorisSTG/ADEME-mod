@@ -248,7 +248,7 @@ if uploaded:
         if val < 0: return f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
         else: return f"background-color: rgba(255,0,0,{min(val/5,1)})"
 
-    st.dataframe(df_bilan_pivot.style.applymap(color_map))
+    st.dataframe(df_bilan_pivot.style.applymap(color_map).format("{:.2f}"))
 
     # -------- Section multi-scénarios pour la ville --------
     st.subheader(f"Comparaison multi-scénarios pour {ville_sel}")
@@ -325,7 +325,7 @@ if uploaded:
 
 
     # Heatmap des écarts des percentiles par mois et scénario
-    st.subheader(f"Ecarts des percentiles par mois et scénario (Modèle - {scenario_sel}/{ville_sel})")
+    st.subheader(f"Ecarts des percentiles (Modèle - +{scenario_sel}/{ville_sel})")
     ref_model = {}
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
@@ -339,5 +339,5 @@ if uploaded:
          # Conversion en float arrondi à 2 décimales
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
-        st.write(f"Percentile {p} - Écart vs modèle")
+        st.write(f"Percentile {p} / Modèle - TRACC +{scenario_sel}/{ville_sel} ")
         st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm").format("{:.2f}"))
