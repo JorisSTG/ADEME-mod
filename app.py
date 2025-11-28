@@ -182,7 +182,6 @@ if uploaded:
     st.subheader("Fonctions de répartition mensuelles (CDF)")
     df_percentiles_all = []
 
-    import matplotlib.pyplot as plt
 
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
@@ -204,7 +203,7 @@ if uploaded:
             np.linspace(0, 100, 100),
             obs_percentiles_100,
             label="Observations",
-            color="#ADFF2F"  # vert clair
+            color="blue"  
         )
     
         ax.set_title(f"Mois {mois} - Fonction de répartition", color="white")
