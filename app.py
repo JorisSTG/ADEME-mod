@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Fri Nov 28 16:59:26 2025
-
-@author: saint-genesj
-"""
-
 import streamlit as st
 import pandas as pd
 import xarray as xr
@@ -13,18 +5,20 @@ import glob
 import os
 import numpy as np
 
-
 st.title("Comparaison scénario modèle / Observations (année type)")
+
 # -------- Paramètres --------
-base_folder = "ADEME"  # dossier racine où sont stockés les sous-dossiers des scénarios
-scenarios = ["2", "2-7", "4", "2_VC", "2-7_VC", "4_VC"]  # noms des sous-dossiers
-villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNANE", "NANCY", "RENNES", "TOURS", "TRAPPES"]  # <-- à remplir avec les noms de vos villes (sans .nc)
+scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]  # 6 scénarios
+villes = []  # <--- remplir avec les 8 villes disponibles
+
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]  # année type
 percentiles_list = [1, 5, 10, 50, 90, 95, 99]
 
 # -------- Choix scénario et ville --------
 scenario_sel = st.selectbox("Choisir le scénario :", scenarios)
 ville_sel = st.selectbox("Choisir la ville :", villes)
+
+base_folder = "github_data"  # <-- dossier github cloné ou local
 
 # -------- Upload CSV modèle --------
 uploaded = st.file_uploader("Dépose ton fichier CSV modèle (colonne unique T) :", type=["csv"])
@@ -40,10 +34,13 @@ if uploaded:
     # Lecture NetCDF
     nc_file_sel = os.path.join(base_folder, scenario_sel, f"{ville_sel}.nc")
     ds_obs = xr.open_dataset(nc_file_sel, decode_times=True)
+    if "T" not in ds_obs:
+        st.error("Le NetCDF n'a pas de variable 'T'")
+        st.stop()
 
-    obs_series = ds_obs["T2m"].to_series()
+    obs_series = ds_obs["T"].to_series()
     df_obs = obs_series.reset_index()
-    df_obs.rename(columns={"T2m": "T2m", "time": "time"}, inplace=True)
+    df_obs.rename(columns={"T": "T", "time": "time"}, inplace=True)
     df_obs["year"] = df_obs["time"].dt.year
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
@@ -65,7 +62,7 @@ if uploaded:
         mod_sorted = np.sort(mod_mois)
 
         # Observations pour ce mois sur l'année type
-        obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
+        obs_mois_vals = df_obs[df_obs["month"] == mois]["T"].values
         obs_sorted = np.sort(obs_mois_vals)
         obs_mois_all.append(obs_sorted)
 
@@ -184,7 +181,7 @@ if uploaded:
     for scenario in scenarios:
         nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
         ds = xr.open_dataset(nc_file, decode_times=True)
-        temps = ds["T2m"].to_series().values
+        temps = ds["T"].to_series().values
 
         start_idx = 0
         for mois, nb_heures in enumerate(heures_par_mois, start=1):
@@ -208,7 +205,7 @@ if uploaded:
         for scenario in scenarios:
             nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
             ds = xr.open_dataset(nc_file, decode_times=True)
-            temps = ds["T2m"].to_series().values
+            temps = ds["T"].to_series().values
             obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
             cdf_dict[scenario] = np.percentile(obs_mois, np.linspace(0,100,100))
         df_cdf_scenarios = pd.DataFrame(cdf_dict).round(2)
@@ -221,4 +218,3 @@ if uploaded:
         df_pivot = df_scenarios[df_scenarios["Percentile"]==f"P{p}"].pivot(index="Scénario", columns="Mois", values="Valeur")
         st.write(f"Percentile P{p}")
         st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
-
