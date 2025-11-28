@@ -278,7 +278,7 @@ if uploaded:
 
     # Définir les paires de scénarios et leurs couleurs
     scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
-    colors = ["yellow", "lightgreen", "cyan"]  # couleur par paire
+    colors = ["green", "orange", "indigo"]  # couleur par paire
 
     for mois in range(1, 13):
         fig, ax = plt.subplots(figsize=(12, 4))
