@@ -18,7 +18,7 @@ st.title("Comparaison modèle / Observations par scénario et ville")
 # -------- Paramètres --------
 base_folder = "github_data"  # dossier racine où sont stockés les sous-dossiers des scénarios
 scenarios = ["2", "2-7", "4", "2_VC", "2-7_VC", "4_VC"]  # noms des sous-dossiers
-villes = []  # <-- à remplir avec les noms de vos villes (sans .nc)
+villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNANE", "NANCY", "RENNES", "TOURS", "TRAPPES"]  # <-- à remplir avec les noms de vos villes (sans .nc)
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]  # année type
 percentiles_list = [1, 5, 10, 50, 90, 95, 99]
 
