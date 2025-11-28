@@ -57,6 +57,8 @@ if uploaded:
     def rmse(a, b):
         """Calcul du RMSE entre deux séries."""
         min_len = min(len(a), len(b))
+        a_sorted = np.sort(a[:min_len])
+        b_sorted = np.sort(b[:min_len])
         return np.sqrt(np.nanmean((a[:min_len] - b[:min_len]) ** 2))
 
     def precision_normale(rmse_val, sigma_obs):
@@ -67,6 +69,8 @@ if uploaded:
         prob = norm.cdf(z)  # probabilité que X <= z*sigma
         precision = 100 * (1 - prob)
         return round(precision, 2)
+
+    
     def precision_pct(rmse, sigma_obs):
         """Retourne une précision en % relative à l'écart-type des obs"""
         pct = 100 * (1 - rmse / sigma_obs)
