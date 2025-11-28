@@ -100,7 +100,7 @@ if uploaded:
     st.subheader("Nombre d'heures sup/inf et écart obs-mod")
     st.dataframe(df_stats, hide_index=True)
 
-    # -------- Graphes en barres pour les plages de température (1°C) --------
+       # -------- Graphes en barres pour les plages de température (1°C) --------
     st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
 
     # Bins fixes
@@ -159,6 +159,9 @@ if uploaded:
             color="Type",
             use_container_width=True
         )
+
+        # Affichage des labels sous forme de texte
+        st.caption("Labels températures : " + ", ".join(df_plot["Température (°C)"].tolist()))
 
 
 
