@@ -83,7 +83,8 @@ if uploaded:
 
         val_rmse = rmse(mod_mois, obs_mois_vals)
         sigma_obs = np.std(obs_mois_vals, ddof=1)
-        pct_precision = precision_normale(val_rmse, sigma_obs)
+        #pct_precision = precision_normale(val_rmse, sigma_obs)
+        pct_precision = precision_pct(val_rmse, sigma_obs)
 
         results_rmse.append({
             "Mois": mois,
@@ -95,7 +96,7 @@ if uploaded:
         start_idx_model += nb_heures
 
     df_rmse = pd.DataFrame(results_rmse)
-    st.subheader("Précision du modèle : RMSE mensuels et précision selon loi normale (%)")
+    st.subheader("Précision du modèle : RMSE mensuels et précision selon 1 écart-type")
     st.dataframe(df_rmse, hide_index=True)
 
 
@@ -143,7 +144,7 @@ if uploaded:
     st.dataframe(df_stats, hide_index=True)
 
     # -------- Graphes en barres pour les plages de température (1°C) --------
-    st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
+    st.subheader(f"Histogrammes horaire : Modèle / TRACC +{scenario_sel}/{ville_sel}")
 
     # Bins fixes
     bins = np.arange(-5, 46, 1)          # -5 à 45
