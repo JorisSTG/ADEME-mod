@@ -299,6 +299,8 @@ if uploaded:
     for p in percentiles_list:
         df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
         df_ecart["Ecart"] = df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
+         # Conversion en float arrondi à 2 décimales
+        df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
         st.write(f"Percentile {p} - Écart vs modèle")
         st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
