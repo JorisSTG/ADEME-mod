@@ -4,6 +4,7 @@ import xarray as xr
 import os
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.stats import norm
 
 # ---- STYLE sombre pour se fondre avec le thème Streamlit ----
 plt.style.use("dark_background")
@@ -55,43 +56,48 @@ if uploaded:
         """Calcul du RMSE entre deux séries."""
         return np.sqrt(np.nanmean((a - b) ** 2))
 
-    results_rmse = []
-    obs_mois_all = []
-    start_idx_model = 0
+    
+    def precision_normale(rmse, sigma_obs):
+    """
+    Retourne la précision en % basée sur la loi normale.
+    rmse : RMSE du modèle
+    sigma_obs : écart-type des observations
+    """
+        if sigma_obs == 0:
+            return 100.0  # pas de variabilité, modèle parfait
+        z = rmse / sigma_obs
+    # CDF de la loi normale centrée réduite
+        prob = norm.cdf(z)  # probabilité que X <= zσ
+        precision = 100 * (1 - prob)
+        return round(precision, 2)
+
 
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
-        # Extraction données modèle
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
-        mod_sorted = np.sort(mod_mois)
-    
-        # Extraction données observées
         obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
-        obs_sorted = np.sort(obs_mois_vals)
-        obs_mois_all.append(obs_sorted)
+        obs_mois_all.append(obs_mois_vals)
     
-        # RMSE
-        min_len = min(len(mod_sorted), len(obs_sorted))
-        val_rmse = rmse(mod_sorted[:min_len], obs_sorted[:min_len])
+    # RMSE classique
+        val_rmse = np.sqrt(np.nanmean((mod_mois - obs_mois_vals)**2))
     
-        # Écart-type de la série observée
-        sigma_obs = np.std(obs_sorted[:min_len])
+    # écart-type des observations
+        sigma_obs = np.std(obs_mois_vals, ddof=1)
     
-        # Précision relative (%) : 0 à 100%
-        precision_pct = round(100 * np.exp(-val_rmse / sigma_obs), 2) if sigma_obs > 0 else np.nan
+    # précision selon loi normale
+        pct_precision = precision_normale(val_rmse, sigma_obs)
     
         results_rmse.append({
             "Mois": mois,
-            "RMSE_percentiles (°C)": round(val_rmse, 2),
-            "Précision (%)": precision_pct
+            "RMSE (°C)": round(val_rmse,2),
+            "Sigma_obs (°C)": round(sigma_obs,2),
+            "Précision (%)": pct_precision
         })
     
         start_idx_model += nb_heures
 
-    # Affichage dans Streamlit
     df_rmse = pd.DataFrame(results_rmse)
-    st.subheader("Précision du modèle : RMSE et indicateur en %")
+    st.subheader("Précision du modèle : RMSE mensuels et précision selon loi normale (%)")
     st.dataframe(df_rmse, hide_index=True)
-
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
