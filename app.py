@@ -100,7 +100,7 @@ if uploaded:
     st.subheader("Nombre d'heures sup/inf et écart obs-mod")
     st.dataframe(df_stats, hide_index=True)
 
-    # -------- Graphes en barres pour les plages de température (1°C) --------
+      # -------- Graphes en barres pour les plages de température (1°C) --------
     def count_days_in_bins(temps_series, bins):
         df_temp = pd.DataFrame({"temp": temps_series})
         df_temp["day"] = df_temp.index // 24  # Supposons 24 valeurs par jour
@@ -108,31 +108,32 @@ if uploaded:
         counts, _ = np.histogram(df_temp["temp"], bins=bins)
         return counts
 
-    # Créer les plages de 1°C de -5 à 45
-    bins = np.arange(-5.5, 45.5, 1)  # Plages centrées sur -5, -4, ..., 44
+    # Plages fixes et ordonnées
+    bins = np.arange(-5.5, 45.5, 1)  # -5, -4, ..., 44
+    temp_bins_centers = [int(b + 0.5) for b in bins[:-1]]  # centres numériques
+    temp_bins_labels = [str(t) for t in temp_bins_centers]  # labels strings triés naturellement
 
-    for mois in range(1, 13):
+    for mois in range(1, 12+1):
+
         obs_mois = obs_mois_all[mois-1]
         mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
 
         obs_days_in_bins = count_days_in_bins(obs_mois, bins)
         mod_days_in_bins = count_days_in_bins(mod_mois, bins)
 
-        # Créer un DataFrame pour le graphique
         df_plot = pd.DataFrame({
-            "Température (°C)": [f"{int(bins[i] + 0.5)}" for i in range(len(bins)-1)],  # Afficher la température centrale
-            "Début plage": bins[:-1],  # Pour le tri
+            "Température (°C)": temp_bins_labels,
+            "Ordre": temp_bins_centers,
             "Observations": obs_days_in_bins,
             "Modèle": mod_days_in_bins
         })
+    
+    # Toujours trier par l’ordre numérique
+        df_plot = df_plot.sort_values("Ordre")
 
-        # Trier par la colonne "Début plage"
-        df_plot = df_plot.sort_values(by="Début plage")
+    # On enlève la colonne ordre
+        df_plot = df_plot.drop(columns=["Ordre"])
 
-        # Supprimer la colonne de tri
-        df_plot = df_plot.drop(columns=["Début plage"])
-
-        # Transformer le DataFrame pour avoir les barres côte à côte
         df_plot = df_plot.melt(id_vars="Température (°C)", var_name="Type", value_name="Nombre de jours")
 
         st.subheader(f"Mois {mois} - Nombre de jours par température (°C)")
@@ -143,6 +144,7 @@ if uploaded:
             color="Type",
             use_container_width=True
         )
+ 
 
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
