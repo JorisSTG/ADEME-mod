@@ -9,7 +9,7 @@ st.title("Comparaison scénario modèle / Observations (année type)")
 
 # -------- Paramètres --------
 scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]  # 6 scénarios
-villes = []  # <--- remplir avec les 8 villes disponibles
+villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNAGE","NANCY", "RENNES", "TOURS", "TRAPPES"]  # <--- remplir avec les 8 villes disponibles
 
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]  # année type
 percentiles_list = [1, 5, 10, 50, 90, 95, 99]
@@ -18,7 +18,7 @@ percentiles_list = [1, 5, 10, 50, 90, 95, 99]
 scenario_sel = st.selectbox("Choisir le scénario :", scenarios)
 ville_sel = st.selectbox("Choisir la ville :", villes)
 
-base_folder = "github_data"  # <-- dossier github cloné ou local
+base_folder = "ADEME"  # <-- dossier github cloné ou local
 
 # -------- Upload CSV modèle --------
 uploaded = st.file_uploader("Dépose ton fichier CSV modèle (colonne unique T) :", type=["csv"])
