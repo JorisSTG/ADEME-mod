@@ -161,7 +161,7 @@ if uploaded:
 
         ax.bar(
             df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
-            width=0.4, label="Projection TRACC {scenario_sel}/{ville_sel}", color="blue"
+            width=0.4, label=f"Projection TRACC {scenario_sel}/{ville_sel}", color="blue"
         )
         ax.bar(
             df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
@@ -288,7 +288,7 @@ if uploaded:
         st.line_chart(df_cdf_scenarios)
 
     # Heatmap des écarts des percentiles par mois et scénario
-    st.subheader("Ecarts des percentiles par mois et scénario ({scenario_sel}/{ville_sel} - modèle)")
+    st.subheader(f"Ecarts des percentiles par mois et scénario ({scenario_sel}/{ville_sel} - modèle)")
     ref_model = {}
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
