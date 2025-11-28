@@ -201,19 +201,6 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
-    # ---- Calcul de la précision par créneau de température ----
-    def rmse_hours(obs_counts, mod_counts):
-        """RMSE sur les heures par créneau de température."""
-        min_len = min(len(obs_counts), len(mod_counts))
-        return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
-
-    def precision_hours(rmse_val, sigma_obs):
-        """Précision en % sur les créneaux de température via loi normale."""
-        if sigma_obs == 0:
-            return 100.0
-        z = rmse_val / sigma_obs
-        return round(100 * (1 - norm.cdf(z)), 2)
-
     # ---- Calcul et affichage ----
     results_temp = []
 
@@ -228,11 +215,10 @@ if uploaded:
         mod_counts = count_hours_in_bins(mod_hourly, bins)
 
         # RMSE et sigma sur les counts
-        val_rmse = rmse_hours(obs_counts, mod_counts)
-        sigma_obs = np.std(obs_counts, ddof=1)
-
-        # précision en %
-        pct_precision = precision_hours(val_rmse, sigma_obs)
+        # ---- Précision simple sur heures par créneau ----
+        total_hours = sum(obs_counts)
+        hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
+        pct_precision = round(100 * (1 - hours_error / total_hours), 2)
 
         results_temp.append({
             "Mois": mois,
