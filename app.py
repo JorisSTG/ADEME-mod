@@ -51,52 +51,49 @@ if uploaded:
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
 
-    # -------- RMSE et précision sur percentiles --------
+   # -------- RMSE et précision sur percentiles --------
+    from scipy.stats import norm
+
     def rmse(a, b):
         """Calcul du RMSE entre deux séries."""
-        return np.sqrt(np.nanmean((a - b) ** 2))
+        min_len = min(len(a), len(b))
+        return np.sqrt(np.nanmean((a[:min_len] - b[:min_len]) ** 2))
 
+    def precision_normale(rmse_val, sigma_obs):
+        """Précision en % selon loi normale centrée réduite."""
+        if sigma_obs == 0:
+            return 100.0  # pas de variabilité, modèle parfait
+        z = rmse_val / sigma_obs
+        prob = norm.cdf(z)  # probabilité que X <= z*sigma
+        precision = 100 * (1 - prob)
+        return round(precision, 2)
 
     results_rmse = []
     obs_mois_all = []
     start_idx_model = 0
 
-    def precision_normale(rmse, sigma_obs):
-        if sigma_obs == 0:
-            return 100.0  # pas de variabilité, modèle parfait
-        z = rmse / sigma_obs
-        # CDF de la loi normale centrée réduite
-        prob = norm.cdf(z)  # probabilité que X <= zσ
-        precision = 100 * (1 - prob)
-        return round(precision, 2)
-
-
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
         obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
         obs_mois_all.append(obs_mois_vals)
-    
-    # RMSE classique
-        val_rmse = np.sqrt(np.nanmean((mod_mois - obs_mois_vals)**2))
-    
-    # écart-type des observations
+
+        val_rmse = rmse(mod_mois, obs_mois_vals)
         sigma_obs = np.std(obs_mois_vals, ddof=1)
-    
-    # précision selon loi normale
         pct_precision = precision_normale(val_rmse, sigma_obs)
-    
+
         results_rmse.append({
             "Mois": mois,
-            "RMSE (°C)": round(val_rmse,2),
-            "Sigma_obs (°C)": round(sigma_obs,2),
+            "RMSE (°C)": round(val_rmse, 2),
+            "Sigma_obs (°C)": round(sigma_obs, 2),
             "Précision (%)": pct_precision
         })
-    
+
         start_idx_model += nb_heures
 
     df_rmse = pd.DataFrame(results_rmse)
     st.subheader("Précision du modèle : RMSE mensuels et précision selon loi normale (%)")
     st.dataframe(df_rmse, hide_index=True)
+
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
