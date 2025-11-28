@@ -58,15 +58,10 @@ if uploaded:
 
     
     def precision_normale(rmse, sigma_obs):
-    """
-    Retourne la précision en % basée sur la loi normale.
-    rmse : RMSE du modèle
-    sigma_obs : écart-type des observations
-    """
         if sigma_obs == 0:
             return 100.0  # pas de variabilité, modèle parfait
         z = rmse / sigma_obs
-    # CDF de la loi normale centrée réduite
+        # CDF de la loi normale centrée réduite
         prob = norm.cdf(z)  # probabilité que X <= zσ
         precision = 100 * (1 - prob)
         return round(precision, 2)
