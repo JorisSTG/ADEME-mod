@@ -216,8 +216,15 @@ if uploaded:
         st.line_chart(df_cdf_scenarios)
 
     # Heatmap des percentiles par mois et scénario
-    st.subheader("Heatmap des percentiles par mois et scénario")
+    st.subheader("Heatmap des percentiles par mois et scénario (écart vs modèle)")
+
     for p in percentiles_list:
-        df_pivot = df_scenarios[df_scenarios["Percentile"]==f"P{p}"].pivot(index="Scénario", columns="Mois", values="Valeur")
-        st.write(f"Percentile P{p}")
-        st.dataframe(df_pivot.style.background_gradient(cmap="coolwarm"))
+        # Calculer l'écart par rapport au modèle de référence
+        df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
+        df_ecart["Ecart"] = df_ecart["Valeur"] - df_ecart["Ref_Modele"]  # Ref_Modele = valeur de référence à soustraire
+        # Pivot pour la heatmap
+        df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart")
+
+        st.write(f"Percentile P{p} - Écart vs modèle")
+        st.dataframe(df_pivot.round(2).style.background_gradient(cmap="coolwarm"))
+
