@@ -288,7 +288,7 @@ if uploaded:
         st.line_chart(df_cdf_scenarios)
 
     # Heatmap des écarts des percentiles par mois et scénario
-    st.subheader("Heatmap des écarts des percentiles par mois et scénario (vs modèle)")
+    st.subheader("Ecarts des percentiles par mois et scénario ({scenario_sel}/{ville_sel} - modèle)")
     ref_model = {}
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
