@@ -5,7 +5,7 @@ import glob
 import os
 import numpy as np
 
-st.title("Comparaison scénario modèle / Observations (année type)")
+st.title("Comparaison Modèle / Scénario TRACC (année type)")
 
 # -------- Paramètres --------
 scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]  # 6 scénarios
@@ -21,11 +21,11 @@ ville_sel = st.selectbox("Choisir la ville :", villes)
 base_folder = "ADEME"  # <-- dossier github cloné ou local
 
 # -------- Upload CSV modèle --------
-uploaded = st.file_uploader("Dépose ton fichier CSV modèle (colonne unique T) :", type=["csv"])
+uploaded = st.file_uploader("Déposer le fichier CSV du modèle (colonne unique T°C) :", type=["csv"])
 
 # -------- Seuils --------
-t_sup_thresholds = st.text_input("Seuils Tmax sup (°C, séparés par des virgules)", "25,30,35")
-t_inf_thresholds = st.text_input("Seuils Tmin inf (°C, séparés par des virgules)", "-5,0,5")
+t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
+t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
 
 if uploaded:
     # Lecture CSV modèle
@@ -71,8 +71,8 @@ if uploaded:
         start_idx_model += nb_heures
 
     df_rmse = pd.DataFrame(results_rmse)
-    st.subheader("RMSE mensuels")
-    st.dataframe(df_rmse)
+    st.subheader("Précision du modèle : RMSE mensuels en °C (Ecart moyen entre les percentiles du modèle et des données TRACC")
+    st.dataframe(df_rmse, hide_index=True)
 
     # -------- Nombre d'heures sup/inf et écart obs-mod --------
     t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
