@@ -34,13 +34,10 @@ if uploaded:
     # Lecture NetCDF
     nc_file_sel = os.path.join(base_folder, scenario_sel, f"{ville_sel}.nc")
     ds_obs = xr.open_dataset(nc_file_sel, decode_times=True)
-    if "T" not in ds_obs:
-        st.error("Le NetCDF n'a pas de variable 'T'")
-        st.stop()
 
-    obs_series = ds_obs["T"].to_series()
+    obs_series = ds_obs["T2m"].to_series()
     df_obs = obs_series.reset_index()
-    df_obs.rename(columns={"T": "T", "time": "time"}, inplace=True)
+    df_obs.rename(columns={"T2m": "T2m", "time": "time"}, inplace=True)
     df_obs["year"] = df_obs["time"].dt.year
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
@@ -62,7 +59,7 @@ if uploaded:
         mod_sorted = np.sort(mod_mois)
 
         # Observations pour ce mois sur l'année type
-        obs_mois_vals = df_obs[df_obs["month"] == mois]["T"].values
+        obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
         obs_sorted = np.sort(obs_mois_vals)
         obs_mois_all.append(obs_sorted)
 
@@ -181,7 +178,7 @@ if uploaded:
     for scenario in scenarios:
         nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
         ds = xr.open_dataset(nc_file, decode_times=True)
-        temps = ds["T"].to_series().values
+        temps = ds["T2m"].to_series().values
 
         start_idx = 0
         for mois, nb_heures in enumerate(heures_par_mois, start=1):
@@ -205,7 +202,7 @@ if uploaded:
         for scenario in scenarios:
             nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
             ds = xr.open_dataset(nc_file, decode_times=True)
-            temps = ds["T"].to_series().values
+            temps = ds["T2m"].to_series().values
             obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
             cdf_dict[scenario] = np.percentile(obs_mois, np.linspace(0,100,100))
         df_cdf_scenarios = pd.DataFrame(cdf_dict).round(2)
