@@ -45,10 +45,6 @@ if uploaded:
 
     # Lecture NetCDF
     ds_obs = xr.open_dataset(nc_file_sel, decode_times=True)
-    if "T" not in ds_obs:
-        st.error("Le NetCDF n'a pas de variable 'T'")
-        st.stop()
-
     obs_series = ds_obs["T"].to_series()
     df_obs = obs_series.reset_index()
     df_obs.rename(columns={"T": "T", "time": "time"}, inplace=True)
