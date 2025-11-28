@@ -56,7 +56,11 @@ if uploaded:
         """Calcul du RMSE entre deux séries."""
         return np.sqrt(np.nanmean((a - b) ** 2))
 
-    
+
+    results_rmse = []
+    obs_mois_all = []
+    start_idx_model = 0
+
     def precision_normale(rmse, sigma_obs):
         if sigma_obs == 0:
             return 100.0  # pas de variabilité, modèle parfait
