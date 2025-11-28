@@ -100,50 +100,57 @@ if uploaded:
     st.subheader("Nombre d'heures sup/inf et écart obs-mod")
     st.dataframe(df_stats, hide_index=True)
 
-      # -------- Graphes en barres pour les plages de température (1°C) --------
-    def count_days_in_bins(temps_series, bins):
-        df_temp = pd.DataFrame({"temp": temps_series})
-        df_temp["day"] = df_temp.index // 24  # Supposons 24 valeurs par jour
-        df_temp = df_temp.groupby("day").mean()  # Moyenne journalière
-        counts, _ = np.histogram(df_temp["temp"], bins=bins)
+         # -------- Graphes en barres pour les plages de température (1°C) --------
+    st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
+
+    # Bins fixes
+    bins = np.arange(-5, 46, 1)          # -5 à 45
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    bin_labels = [str(int(x)) for x in bin_centers]
+
+    def count_days_in_bins_hourly(temp_hourly, bins):
+        """Moyenne journalière puis histogramme."""
+        df = pd.DataFrame({"temp": temp_hourly})
+        df["day"] = df.index // 24  # si valeurs horaires
+        daily = df.groupby("day").mean()["temp"]
+        counts, _ = np.histogram(daily, bins=bins)
         return counts
 
-    # Plages fixes et ordonnées
-    bins = np.arange(-5.5, 45.5, 1)  # -5, -4, ..., 44
-    temp_bins_centers = [int(b + 0.5) for b in bins[:-1]]  # centres numériques
-    temp_bins_labels = [str(t) for t in temp_bins_centers]  # labels strings triés naturellement
+    for mois in range(1, 13):
 
-    for mois in range(1, 12+1):
+        # Observations
+        obs_hourly = obs_mois_all[mois-1]
+        obs_counts = count_days_in_bins_hourly(obs_hourly, bins)
 
-        obs_mois = obs_mois_all[mois-1]
-        mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
+        # Modèle
+        idx0 = sum(heures_par_mois[:mois-1])
+        idx1 = sum(heures_par_mois[:mois])
+        mod_hourly = model_values[idx0:idx1]
+        mod_counts = count_days_in_bins_hourly(mod_hourly, bins)
 
-        obs_days_in_bins = count_days_in_bins(obs_mois, bins)
-        mod_days_in_bins = count_days_in_bins(mod_mois, bins)
-
+        # Tableau pour bar_chart
         df_plot = pd.DataFrame({
-            "Température (°C)": temp_bins_labels,
-            "Ordre": temp_bins_centers,
-            "Observations": obs_days_in_bins,
-            "Modèle": mod_days_in_bins
+            "Température (°C)": bin_labels,
+            "Observations": obs_counts,
+            "Modèle": mod_counts
         })
-    
-    # Toujours trier par l’ordre numérique
-        df_plot = df_plot.sort_values("Ordre")
 
-    # On enlève la colonne ordre
-        df_plot = df_plot.drop(columns=["Ordre"])
+        # Format compatible Streamlit pour faire barres côte à côte
+        df_plot_melt = df_plot.melt(
+            id_vars="Température (°C)",
+            var_name="Type",
+            value_name="Nombre de jours"
+        )
 
-        df_plot = df_plot.melt(id_vars="Température (°C)", var_name="Type", value_name="Nombre de jours")
-
-        st.subheader(f"Mois {mois} - Nombre de jours par température (°C)")
+        st.subheader(f"Mois {mois} - Nombre de jours par température")
         st.bar_chart(
-            df_plot,
+            df_plot_melt,
             x="Température (°C)",
             y="Nombre de jours",
             color="Type",
             use_container_width=True
         )
+
  
 
     # -------- Graphiques CDF et percentiles --------
