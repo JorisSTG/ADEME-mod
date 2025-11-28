@@ -3,6 +3,7 @@ import pandas as pd
 import xarray as xr
 import os
 import numpy as np
+import matplotlib.pyplot as plt
 
 st.title("Comparaison Modèle / Scénario TRACC (année type)")
 
