@@ -5,6 +5,22 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 
+# ---- STYLE sombre pour se fondre avec le thème Streamlit ----
+plt.style.use("dark_background")
+
+# Personnalisation pour coller exactement au thème Streamlit
+plt.rcParams.update({
+    "figure.facecolor": "none",      # fond totalement transparent
+    "axes.facecolor": "none",        # fond transparent
+    "savefig.facecolor": "none",     # export sans fond
+    "axes.edgecolor": "#FFFFFF",     # axes blancs
+    "axes.labelcolor": "#FFFFFF",    # labels blancs
+    "xtick.color": "#DDDDDD",
+    "ytick.color": "#DDDDDD",
+    "text.color": "#FFFFFF",
+})
+
+
 st.title("Comparaison Modèle / Scénario TRACC (année type)")
 
 # -------- Paramètres --------
@@ -144,26 +160,25 @@ if uploaded:
             "Modèle": mod_counts
         }).sort_values("Temp_Num")
 
-    # ---- Matplotlib : barres côte à côte ----
-        fig, ax = plt.subplots(figsize=(14, 4))
+       fig, ax = plt.subplots(figsize=(14, 4))
 
-        x = np.arange(len(df_plot))
-        width = 0.4
+        ax.bar(
+            df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
+            width=0.4, label="Observations"
+        )
+        ax.bar(
+            df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
+            width=0.4, label="Modèle"
+        )
 
-        ax.bar(x - width/2, df_plot["Observations"], width, label="Observations")
-        ax.bar(x + width/2, df_plot["Modèle"], width, label="Modèle")
-
-    # Axe X allégé
-        step = 4   # un label sur 4
-        ax.set_xticks(x[::step])
-        ax.set_xticklabels(df_plot["Température"].iloc[::step])
-
+        ax.set_title(f"Mois {mois} - Nombre de jours par température")
         ax.set_xlabel("Température (°C)")
-        ax.set_ylabel("Nombre d'heures")
-        ax.set_title(f"Mois {mois} – Nombre d'heures par température")
+        ax.set_ylabel("Nombre de jours")
         ax.legend()
 
         st.pyplot(fig)
+        plt.close(fig)
+
 
 
     # -------- Graphiques CDF et percentiles --------
