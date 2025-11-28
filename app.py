@@ -184,7 +184,7 @@ if uploaded:
     for scenario in scenarios:
         nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
         ds = xr.open_dataset(nc_file, decode_times=True)
-        temps = ds["T"].to_series().values
+        temps = ds["T2m"].to_series().values
 
         start_idx = 0
         for mois, nb_heures in enumerate(heures_par_mois, start=1):
