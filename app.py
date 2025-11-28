@@ -126,10 +126,7 @@ if uploaded:
     bin_centers_int = bin_centers.astype(int)  # pour l’ordre
     bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
 
-    # -------- Graphes en barres pour les plages de température (1°C) --------
-    st.subheader("Histogrammes horaires : Observations vs Modèle (barres côte à côte)")
-
-# Bins fixes (-5 à 45°C)
+    # Bins fixes (-5 à 45°C)
     bins = np.arange(-5, 46, 1)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     bin_centers_int = bin_centers.astype(int)
@@ -164,16 +161,16 @@ if uploaded:
 
         ax.bar(
             df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
-            width=0.4, label="Observations", color="blue"
+            width=0.4, label="Projection TRACC {scenario_sel}/{ville_sel}", color="blue"
         )
         ax.bar(
             df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
             width=0.4, label="Modèle", color="red"
         )
 
-        ax.set_title(f"Mois {mois} - Nombre de jours par température")
+        ax.set_title(f"Mois {mois} - Durée en heure par seuil de température dans le mois")
         ax.set_xlabel("Température (°C)")
-        ax.set_ylabel("Nombre de jours")
+        ax.set_ylabel("Durée en heure")
         ax.legend()
 
         st.pyplot(fig)
@@ -185,15 +182,42 @@ if uploaded:
     st.subheader("Fonctions de répartition mensuelles (CDF)")
     df_percentiles_all = []
 
+    import matplotlib.pyplot as plt
+
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
         mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-        obs_percentiles_100 = np.percentile(obs_mois, np.linspace(0,100,100))
-        mod_percentiles_100 = np.percentile(mod_mois, np.linspace(0,100,100))
-        df_cdf = pd.DataFrame({"Obs": obs_percentiles_100, "Mod": mod_percentiles_100}).round(2)
-        st.write(f"Mois {mois} - Fonction de répartition")
-        st.line_chart(df_cdf)
-
+    
+    # Calcul des percentiles pour CDF
+        obs_percentiles_100 = np.percentile(obs_mois, np.linspace(0, 100, 100))
+        mod_percentiles_100 = np.percentile(mod_mois, np.linspace(0, 100, 100))
+    
+    # Graphique CDF
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.plot(
+            np.linspace(0, 100, 100),
+            mod_percentiles_100,
+            label=f"Modèle '{scenario_sel}'",
+            color="red"
+        )
+        ax.plot(
+            np.linspace(0, 100, 100),
+            obs_percentiles_100,
+            label="Observations",
+            color="#ADFF2F"  # vert clair
+        )
+    
+        ax.set_title(f"Mois {mois} - Fonction de répartition", color="white")
+        ax.set_xlabel("Percentile", color="white")
+        ax.set_ylabel("Température (°C)", color="white")
+        ax.tick_params(colors="white")
+        ax.legend(facecolor="black")
+        ax.set_facecolor("none")  # transparent
+    
+        st.pyplot(fig)
+        plt.close(fig)
+    
+        # Percentiles clés
         obs_p = np.percentile(obs_mois, percentiles_list)
         mod_p = np.percentile(mod_mois, percentiles_list)
         df_p = pd.DataFrame({
@@ -201,8 +225,10 @@ if uploaded:
             "Obs": obs_p,
             "Mod": mod_p
         }).round(2)
+    
         st.write(f"Mois {mois} - Percentiles")
         st.dataframe(df_p, hide_index=True)
+
 
         for i, p in enumerate(percentiles_list):
             df_percentiles_all.append({
