@@ -148,7 +148,7 @@ if uploaded:
         )
 
         # IMPORTANT : on utilise la colonne numérique mais on montre les labels
-        chart_data = df_plot_melt.rename(columns={"Temp_Num": "Temp"})
+        chart_data = df_plot_melt.rename(columns={"Temp_Num": "Température en °C"})
 
         st.subheader(f"Mois {mois} - Nombre de jours par température")
 
@@ -160,8 +160,6 @@ if uploaded:
             use_container_width=True
         )
 
-        # Affichage des labels sous forme de texte
-        st.caption("Labels températures : " + ", ".join(df_plot["Température (°C)"].tolist()))
 
 
     # -------- Graphiques CDF et percentiles --------
