@@ -273,19 +273,56 @@ if uploaded:
 
     df_scenarios = pd.DataFrame(df_percentiles_scenarios)
 
-    # Graphique CDF comparatif par mois
-    st.subheader("CDF comparatif par scénario")
-    for mois in range(1,13):
-        cdf_dict = {}
-        for scenario in scenarios:
-            nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
+    # -------- Graphique CDF comparatif par scénario avec matplotlib --------
+    st.subheader("CDF comparatif des scénarios (trait plein / pointillé par paire)")
+
+    # Définir les paires de scénarios et leurs couleurs
+    scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
+    colors = ["yellow", "lightgreen", "cyan"]  # couleur par paire
+
+    for mois in range(1, 13):
+        fig, ax = plt.subplots(figsize=(12, 4))
+        for i, (sc1, sc2) in enumerate(scenario_pairs):
+            color = colors[i]
+
+        # Premier scénario : trait plein
+            nc_file = os.path.join(base_folder, sc1, f"{ville_sel}.nc")
             ds = xr.open_dataset(nc_file, decode_times=True)
             temps = ds["T2m"].to_series().values
             obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-            cdf_dict[scenario] = np.percentile(obs_mois, np.linspace(0,100,100))
-        df_cdf_scenarios = pd.DataFrame(cdf_dict).round(2)
-        st.write(f"Mois {mois}")
-        st.line_chart(df_cdf_scenarios)
+            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
+            ax.plot(
+                np.linspace(0, 100, 100),
+                cdf_values,
+                label=f"{sc1}",
+                color=color,
+                linestyle="-"
+            )
+
+            # Deuxième scénario : trait pointillé
+            nc_file = os.path.join(base_folder, sc2, f"{ville_sel}.nc")
+            ds = xr.open_dataset(nc_file, decode_times=True)
+            temps = ds["T2m"].to_series().values
+            obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
+            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
+            ax.plot(
+                np.linspace(0, 100, 100),
+                cdf_values,
+                label=f"{sc2}",
+                color=color,
+                linestyle="--"
+            )
+
+        ax.set_title(f"Mois {mois} - CDF comparatif par scénario", color="white")
+        ax.set_xlabel("Percentile", color="white")
+        ax.set_ylabel("Température (°C)", color="white")
+        ax.tick_params(colors="white")
+        ax.legend(facecolor="black")
+        ax.set_facecolor("none")  # transparent
+
+        st.pyplot(fig)
+        plt.close(fig)
+
 
     # Heatmap des écarts des percentiles par mois et scénario
     st.subheader(f"Ecarts des percentiles par mois et scénario ({scenario_sel}/{ville_sel} - modèle)")
