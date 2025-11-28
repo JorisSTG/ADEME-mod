@@ -21,7 +21,7 @@ plt.rcParams.update({
 })
 
 
-st.title("Comparaison Modèle / TRACC")
+st.title("Comparaison : Modèle / TRACC")
 
 # -------- Paramètres --------
 scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]
@@ -37,10 +37,6 @@ base_folder = "ADEME"
 # -------- Upload CSV modèle --------
 uploaded = st.file_uploader("Déposer le fichier CSV du modèle (colonne unique T°C) :", type=["csv"])
 
-# -------- Seuils --------
-t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
-t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
-
 if uploaded:
     # Lecture CSV modèle
     model_values = pd.read_csv(uploaded, header=0).iloc[:, 0].values
@@ -54,11 +50,9 @@ if uploaded:
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
 
-    # Supprimer 29 février si présent
-    df_obs = df_obs[~((df_obs["month"] == 2) & (df_obs["day"] == 29))]
-
-    # -------- RMSE sur percentiles --------
+    # -------- RMSE et précision sur percentiles --------
     def rmse(a, b):
+        """Calcul du RMSE entre deux séries."""
         return np.sqrt(np.nanmean((a - b) ** 2))
 
     results_rmse = []
@@ -66,28 +60,53 @@ if uploaded:
     start_idx_model = 0
 
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
+        # Extraction données modèle
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
         mod_sorted = np.sort(mod_mois)
+    
+        # Extraction données observées
         obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
         obs_sorted = np.sort(obs_mois_vals)
         obs_mois_all.append(obs_sorted)
+    
+        # RMSE
         min_len = min(len(mod_sorted), len(obs_sorted))
         val_rmse = rmse(mod_sorted[:min_len], obs_sorted[:min_len])
-        results_rmse.append({"Mois": mois, "RMSE_percentiles": round(val_rmse, 2)})
+    
+        # Écart-type de la série observée
+        sigma_obs = np.std(obs_sorted[:min_len])
+    
+        # Précision relative (%) : 0 à 100%
+        precision_pct = round(100 * np.exp(-val_rmse / sigma_obs), 2) if sigma_obs > 0 else np.nan
+    
+        results_rmse.append({
+            "Mois": mois,
+            "RMSE_percentiles (°C)": round(val_rmse, 2),
+            "Précision (%)": precision_pct
+        })
+    
         start_idx_model += nb_heures
 
-    df_rmse = pd.DataFrame(results_rmse).round(2)
-    st.subheader("Précision du modèle : RMSE mensuels en °C")
+    # Affichage dans Streamlit
+    df_rmse = pd.DataFrame(results_rmse)
+    st.subheader("Précision du modèle : RMSE et indicateur en %")
     st.dataframe(df_rmse, hide_index=True)
+
+
+    # -------- Seuils --------
+    t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
+    t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
 
     # -------- Nombre d'heures sup/inf et écart obs-mod --------
     t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
     t_inf_thresholds_list = [float(x.strip()) for x in t_inf_thresholds.split(",")]
 
     stats = []
+
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
         mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
         obs_mois = obs_mois_all[mois-1]
+        
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
