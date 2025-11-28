@@ -164,11 +164,11 @@ if uploaded:
 
         ax.bar(
             df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
-            width=0.4, label="Observations"
+            width=0.4, label="Observations", color="blue"
         )
         ax.bar(
             df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
-            width=0.4, label="Modèle"
+            width=0.4, label="Modèle", color="red"
         )
 
         ax.set_title(f"Mois {mois} - Nombre de jours par température")
