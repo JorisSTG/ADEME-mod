@@ -238,7 +238,7 @@ if uploaded:
             })
 
     # -------- Tableau bilan chaud/froid --------
-    st.subheader("Bilan modèle vs Observations (chaud/froid)")
+    st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
     df_bilan = pd.DataFrame(df_percentiles_all).round(2)
     df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
     df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
@@ -325,7 +325,7 @@ if uploaded:
 
 
     # Heatmap des écarts des percentiles par mois et scénario
-    st.subheader(f"Ecarts des percentiles par mois et scénario ({scenario_sel}/{ville_sel} - modèle)")
+    st.subheader(f"Ecarts des percentiles par mois et scénario (Modèle - {scenario_sel}/{ville_sel})")
     ref_model = {}
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
@@ -335,7 +335,7 @@ if uploaded:
 
     for p in percentiles_list:
         df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
-        df_ecart["Ecart"] = df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
+        df_ecart["Ecart"] = -df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
          # Conversion en float arrondi à 2 décimales
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
