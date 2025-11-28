@@ -59,14 +59,18 @@ if uploaded:
         min_len = min(len(a), len(b))
         return np.sqrt(np.nanmean((a[:min_len] - b[:min_len]) ** 2))
 
-    def precision_normale(rmse_val, sigma_obs):
-        """Précision en % selon loi normale centrée réduite."""
-        if sigma_obs == 0:
-            return 100.0  # pas de variabilité, modèle parfait
-        z = rmse_val / sigma_obs
-        prob = norm.cdf(z)  # probabilité que X <= z*sigma
-        precision = 100 * (1 - prob)
-        return round(precision, 2)
+    #def precision_normale(rmse_val, sigma_obs):
+        #"""Précision en % selon loi normale centrée réduite."""
+        #if sigma_obs == 0:
+         #   return 100.0  # pas de variabilité, modèle parfait
+        #z = rmse_val / sigma_obs
+       # prob = norm.cdf(z)  # probabilité que X <= z*sigma
+       # precision = 100 * (1 - prob)
+       # return round(precision, 2)
+    def precision_pct(rmse, sigma_obs):
+        """Retourne une précision en % relative à l'écart-type des obs"""
+        pct = 100 * (1 - rmse / sigma_obs)
+        return max(0, round(pct,2))  # on limite à 0% si RMSE > sigma
 
     results_rmse = []
     obs_mois_all = []
