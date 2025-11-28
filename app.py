@@ -105,7 +105,7 @@ if uploaded:
         counts, _ = np.histogram(df_temp["temp"], bins=bins)
         return counts
 
-    bins = np.arange(0, 42, 2)
+    bins = np.arange(-5, 40, 1)
 
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
