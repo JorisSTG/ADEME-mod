@@ -159,8 +159,8 @@ if uploaded:
             "Observations": obs_counts,
             "Modèle": mod_counts
         }).sort_values("Temp_Num")
-
-       fig, ax = plt.subplots(figsize=(14, 4))
+        
+        fig, ax = plt.subplots(figsize=(14, 4))
 
         ax.bar(
             df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
