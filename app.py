@@ -98,6 +98,7 @@ if uploaded:
     st.dataframe(df_stats, hide_index=True)
 
     # -------- Graphes en barres pour les plages de température --------
+    # -------- Graphes en barres pour les plages de température --------
     def count_days_in_bins(temps_series, bins):
         df_temp = pd.DataFrame({"temp": temps_series})
         df_temp["day"] = df_temp.index // 24  # Supposons 24 valeurs par jour
@@ -105,7 +106,7 @@ if uploaded:
         counts, _ = np.histogram(df_temp["temp"], bins=bins)
         return counts
 
-    bins = np.arange(-10, 40, 1)
+    bins = np.arange(0, 42, 2)
 
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
@@ -114,14 +115,19 @@ if uploaded:
         obs_days_in_bins = count_days_in_bins(obs_mois, bins)
         mod_days_in_bins = count_days_in_bins(mod_mois, bins)
 
+        # Créer un DataFrame pour le graphique
         df_plot = pd.DataFrame({
             "Plage (°C)": [f"{bins[i]}-{bins[i+1]}" for i in range(len(bins)-1)],
             "Observations": obs_days_in_bins,
             "Modèle": mod_days_in_bins
         })
 
+        # Trier les plages par ordre croissant
+        df_plot = df_plot.sort_values(by="Plage (°C)")
+
         st.subheader(f"Mois {mois} - Nombre de jours par plage de température")
         st.bar_chart(df_plot.set_index("Plage (°C)"), use_container_width=True)
+
 
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
