@@ -100,7 +100,7 @@ if uploaded:
     st.subheader("Nombre d'heures sup/inf et écart obs-mod")
     st.dataframe(df_stats, hide_index=True)
 
-       # -------- Graphes en barres pour les plages de température (1°C) --------
+    # -------- Graphes en barres pour les plages de température (1°C) --------
     st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
 
     # Bins fixes
@@ -109,68 +109,60 @@ if uploaded:
     bin_centers_int = bin_centers.astype(int)  # pour l’ordre
     bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
 
-        # -------- Graphes en barres pour les plages de température (1°C) --------
-    st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
+    # -------- Graphes en barres pour les plages de température (1°C) --------
+    st.subheader("Histogrammes horaires : Observations vs Modèle (barres côte à côte)")
 
-    # Bins fixes
-    bins = np.arange(-5, 46, 1)          # -5 à 45
-    bin_centers = (bins[:-1] + bins[1:]) / 2   # valeurs numériques
-    bin_centers_int = bin_centers.astype(int)  # pour l’ordre
-    bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
+# Bins fixes (-5 à 45°C)
+    bins = np.arange(-5, 46, 1)
+    bin_centers = (bins[:-1] + bins[1:]) / 2
+    bin_centers_int = bin_centers.astype(int)
+    bin_labels = [str(int(x)) for x in bin_centers]
 
-    def count_days_in_bins_hourly(temp_hourly, bins):
-        """Moyenne journalière puis histogramme."""
-        df = pd.DataFrame({"temp": temp_hourly})
-        df["day"] = df.index // 24   # conversion jour
-        daily = df.groupby("day").mean()["temp"]
-        counts, _ = np.histogram(daily, bins=bins)
+    def count_hours_in_bins(temp_hourly, bins):
+        """Histogramme en HEURES (pas de conversion en jours)."""
+        counts, _ = np.histogram(temp_hourly, bins=bins)
         return counts
 
     for mois in range(1, 13):
 
-        # Observations
+    # ---- Observations : comptage en heures ----
         obs_hourly = obs_mois_all[mois-1]
-        obs_counts = count_days_in_bins_hourly(obs_hourly, bins)
+        obs_counts = count_hours_in_bins(obs_hourly, bins)
 
-        # Modèle
+    # ---- Modèle ----
         idx0 = sum(heures_par_mois[:mois-1])
         idx1 = sum(heures_par_mois[:mois])
         mod_hourly = model_values[idx0:idx1]
-        mod_counts = count_days_in_bins_hourly(mod_hourly, bins)
+        mod_counts = count_hours_in_bins(mod_hourly, bins)
 
-        # Tableau propre
+    # ---- DataFrame trié ----
         df_plot = pd.DataFrame({
-            "Temp_Num": bin_centers_int,     # <--- ENTIER NUMÉRIQUE POUR LE TRI
-            "Température (°C)": bin_labels,  # <--- LABELS AFFICHÉS
+            "Temp_Num": bin_centers_int,     # pour l'ordre
+            "Température": bin_labels,
             "Observations": obs_counts,
             "Modèle": mod_counts
-        })
+        }).sort_values("Temp_Num")
 
-        # Tri garanti
-        df_plot = df_plot.sort_values("Temp_Num")
+    # ---- Matplotlib : barres côte à côte ----
+        fig, ax = plt.subplots(figsize=(14, 4))
 
-        # Format Melt pour Streamlit
-        df_plot_melt = df_plot.melt(
-            id_vars=["Temp_Num", "Température (°C)"],
-            var_name="Type",
-            value_name="Nombre de jours"
-        )
+        x = np.arange(len(df_plot))
+        width = 0.4
 
-        # IMPORTANT : on utilise la colonne numérique mais on montre les labels
-        chart_data = df_plot_melt.rename(columns={"Temp_Num": "Temp"})
+        ax.bar(x - width/2, df_plot["Observations"], width, label="Observations")
+        ax.bar(x + width/2, df_plot["Modèle"], width, label="Modèle")
 
-        st.subheader(f"Mois {mois} - Nombre de jours par température")
+    # Axe X allégé
+        step = 4   # un label sur 4
+        ax.set_xticks(x[::step])
+        ax.set_xticklabels(df_plot["Température"].iloc[::step])
 
-        st.bar_chart(
-            chart_data,
-            x="Temp",
-            y="Nombre de jours",
-            color="Type",
-            use_container_width=True
-        )
+        ax.set_xlabel("Température (°C)")
+        ax.set_ylabel("Nombre d'heures")
+        ax.set_title(f"Mois {mois} – Nombre d'heures par température")
+        ax.legend()
 
-        # Affichage des labels sous forme de texte
-        st.caption("Labels températures : " + ", ".join(df_plot["Température (°C)"].tolist()))
+        st.pyplot(fig)
 
 
     # -------- Graphiques CDF et percentiles --------
