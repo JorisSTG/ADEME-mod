@@ -100,18 +100,19 @@ if uploaded:
     st.subheader("Nombre d'heures sup/inf et écart obs-mod")
     st.dataframe(df_stats, hide_index=True)
 
-         # -------- Graphes en barres pour les plages de température (1°C) --------
+    # -------- Graphes en barres pour les plages de température (1°C) --------
     st.subheader("Histogrammes journaliers : Observations vs Modèle (barres côte à côte)")
 
     # Bins fixes
     bins = np.arange(-5, 46, 1)          # -5 à 45
-    bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_labels = [str(int(x)) for x in bin_centers]
+    bin_centers = (bins[:-1] + bins[1:]) / 2   # valeurs numériques
+    bin_centers_int = bin_centers.astype(int)  # pour l’ordre
+    bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
 
     def count_days_in_bins_hourly(temp_hourly, bins):
         """Moyenne journalière puis histogramme."""
         df = pd.DataFrame({"temp": temp_hourly})
-        df["day"] = df.index // 24  # si valeurs horaires
+        df["day"] = df.index // 24   # conversion jour
         daily = df.groupby("day").mean()["temp"]
         counts, _ = np.histogram(daily, bins=bins)
         return counts
@@ -128,30 +129,40 @@ if uploaded:
         mod_hourly = model_values[idx0:idx1]
         mod_counts = count_days_in_bins_hourly(mod_hourly, bins)
 
-        # Tableau pour bar_chart
+        # Tableau propre
         df_plot = pd.DataFrame({
-            "Température (°C)": bin_labels,
+            "Temp_Num": bin_centers_int,     # <--- ENTIER NUMÉRIQUE POUR LE TRI
+            "Température (°C)": bin_labels,  # <--- LABELS AFFICHÉS
             "Observations": obs_counts,
             "Modèle": mod_counts
         })
 
-        # Format compatible Streamlit pour faire barres côte à côte
+        # Tri garanti
+        df_plot = df_plot.sort_values("Temp_Num")
+
+        # Format Melt pour Streamlit
         df_plot_melt = df_plot.melt(
-            id_vars="Température (°C)",
+            id_vars=["Temp_Num", "Température (°C)"],
             var_name="Type",
             value_name="Nombre de jours"
         )
 
+        # IMPORTANT : on utilise la colonne numérique mais on montre les labels
+        chart_data = df_plot_melt.rename(columns={"Temp_Num": "Temp"})
+
         st.subheader(f"Mois {mois} - Nombre de jours par température")
+
         st.bar_chart(
-            df_plot_melt,
-            x="Température (°C)",
+            chart_data,
+            x="Temp",
             y="Nombre de jours",
             color="Type",
             use_container_width=True
         )
 
- 
+        # Affichage des labels sous forme de texte
+        st.caption("Labels températures : " + ", ".join(df_plot["Température (°C)"].tolist()))
+
 
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
