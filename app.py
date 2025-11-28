@@ -28,9 +28,6 @@ ville_sel = st.selectbox("Choisir la ville :", villes)
 
 # Chemin vers le NetCDF
 nc_file_sel = os.path.join(base_folder, scenario_sel, f"{ville_sel}.nc")
-if not os.path.isfile(nc_file_sel):
-    st.error(f"Fichier NetCDF manquant : {nc_file_sel}")
-    st.stop()
 
 # -------- Upload CSV modèle --------
 uploaded = st.file_uploader("Dépose ton fichier CSV modèle (colonne unique T) :", type=["csv"])
@@ -45,9 +42,9 @@ if uploaded:
 
     # Lecture NetCDF
     ds_obs = xr.open_dataset(nc_file_sel, decode_times=True)
-    obs_series = ds_obs["T"].to_series()
+    obs_series = ds_obs["T2m"].to_series()
     df_obs = obs_series.reset_index()
-    df_obs.rename(columns={"T": "T", "time": "time"}, inplace=True)
+    df_obs.rename(columns={"T2m": "T2m", "time": "time"}, inplace=True)
     df_obs["year"] = df_obs["time"].dt.year
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
@@ -68,7 +65,7 @@ if uploaded:
         mod_sorted = np.sort(mod_mois)
 
         # Observations pour ce mois (1 seule année ici)
-        vals = df_obs[df_obs["month"] == mois]["T"].values
+        vals = df_obs[df_obs["month"] == mois]["T2m"].values
         obs_mois_all.append(np.sort(vals))
 
         min_len = min(len(mod_sorted), len(vals))
