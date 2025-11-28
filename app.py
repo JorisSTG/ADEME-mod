@@ -6,15 +6,12 @@ Created on Fri Nov 28 16:59:26 2025
 @author: saint-genesj
 """
 
-
 import streamlit as st
 import pandas as pd
 import xarray as xr
 import glob
 import os
 import numpy as np
-
-
 
 
 st.title("Comparaison scénario modèle / Observations (année type)")
@@ -43,13 +40,10 @@ if uploaded:
     # Lecture NetCDF
     nc_file_sel = os.path.join(base_folder, scenario_sel, f"{ville_sel}.nc")
     ds_obs = xr.open_dataset(nc_file_sel, decode_times=True)
-    if "T" not in ds_obs:
-        st.error("Le NetCDF n'a pas de variable 'T'")
-        st.stop()
 
-    obs_series = ds_obs["T"].to_series()
+    obs_series = ds_obs["T2m"].to_series()
     df_obs = obs_series.reset_index()
-    df_obs.rename(columns={"T": "T", "time": "time"}, inplace=True)
+    df_obs.rename(columns={"T2m": "T2m", "time": "time"}, inplace=True)
     df_obs["year"] = df_obs["time"].dt.year
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
@@ -71,7 +65,7 @@ if uploaded:
         mod_sorted = np.sort(mod_mois)
 
         # Observations pour ce mois sur l'année type
-        obs_mois_vals = df_obs[df_obs["month"] == mois]["T"].values
+        obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
         obs_sorted = np.sort(obs_mois_vals)
         obs_mois_all.append(obs_sorted)
 
