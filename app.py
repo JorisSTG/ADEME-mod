@@ -92,6 +92,7 @@ if uploaded:
     
     # -------- Boucle sur les mois --------
     results_rmse = []
+    obs_mois_all = []
     start_idx_model = 0
 
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
