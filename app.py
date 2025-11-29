@@ -63,7 +63,7 @@ if uploaded:
             return 100.0  # pas de variabilité, modèle parfait
         z = rmse_val / sigma_obs
         prob = norm.cdf(z)  # probabilité que X <= z*sigma
-        precision = 100 * (1 - prob)
+        precision = 2 * 100 * (1 - prob)
         return round(precision, 2)
 
     # -------- Boucle sur les mois --------
@@ -98,11 +98,9 @@ if uploaded:
     df_rmse = pd.DataFrame(results_rmse)
 
     # Dégradé de couleur rouge->orange->jaune->vert selon la précision
-    df_rmse_styled = df_rmse.style.background_gradient(
-        subset=["Précision (%)"],
-        cmap="RdYlGn",  # Rouge → Jaune → Vert
-        axis=None
-    ).format("{:.2f}")  # Arrondir à 2 décimales
+    df_rmse_styled = df_rmse.style \
+    .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
+    .format({"Précision (%)": "{:.2f}", "RMSE (°C)": "{:.2f}", "Sigma_obs (°C)": "{:.2f}"})
 
     st.subheader("Précision du modèle : RMSE mensuels et précision (%)")
     st.dataframe(df_rmse_styled, hide_index=True)
