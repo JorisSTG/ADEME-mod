@@ -116,34 +116,34 @@ if uploaded:
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
-            ecart = heures_obs - nb_heures_mod
+            ecart = nb_heures_mod - heures_obs -
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Supérieur",
-                "Nb_heures_obs": heures_obs,
-                "Nb_heures_mod": nb_heures_mod,
-                "Ecart_obs_mod": ecart
+                "Heures Modèle": nb_heures_mod,
+                "Heures TRACC": heures_obs,
+                "Ecart (Modèle - TRACC)": ecart
             })
         for seuil in t_inf_thresholds_list:
             heures_obs = np.sum(obs_mois < seuil)
             nb_heures_mod = np.sum(mod_mois < seuil)
-            ecart = heures_obs - nb_heures_mod
+            ecart =  nb_heures_mod - heures_obs
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Inférieur",
-                "Nb_heures_obs": heures_obs,
-                "Nb_heures_mod": nb_heures_mod,
-                "Ecart_obs_mod": ecart
+                "Heures Modèle": nb_heures_mod,
+                "Heures TRACC": heures_obs,
+                "Ecart (Modèle - TRACC)": ecart
             })
 
     df_stats = pd.DataFrame(stats).round(2)
-    st.subheader("Nombre d'heures sup/inf et écart obs-mod")
+    st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
     st.dataframe(df_stats, hide_index=True)
 
     # -------- Graphes en barres pour les plages de température (1°C) --------
-    st.subheader(f"Histogrammes horaire : Modèle / TRACC +{scenario_sel}/{ville_sel}")
+    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel}")
 
     # Bins fixes
     bins = np.arange(-5, 46, 1)          # -5 à 45
@@ -158,7 +158,6 @@ if uploaded:
     bin_labels = [str(int(x)) for x in bin_centers]
 
     def count_hours_in_bins(temp_hourly, bins):
-        """Histogramme en HEURES (pas de conversion en jours)."""
         counts, _ = np.histogram(temp_hourly, bins=bins)
         return counts
 
@@ -178,15 +177,15 @@ if uploaded:
         df_plot = pd.DataFrame({
             "Temp_Num": bin_centers_int,     # pour l'ordre
             "Température": bin_labels,
-            "Observations": obs_counts,
+            "TRACC": obs_counts,
             "Modèle": mod_counts
         }).sort_values("Temp_Num")
         
         fig, ax = plt.subplots(figsize=(14, 4))
 
         ax.bar(
-            df_plot["Temp_Num"] - 0.2, df_plot["Observations"],
-            width=0.4, label=f"Projection TRACC +{scenario_sel}/{ville_sel}", color="blue"
+            df_plot["Temp_Num"] - 0.2, df_plot["TRACC"],
+            width=0.4, label=f"TRACC +{scenario_sel}/{ville_sel}", color="blue"
         )
         ax.bar(
             df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
@@ -333,7 +332,7 @@ if uploaded:
     df_scenarios = pd.DataFrame(df_percentiles_scenarios)
 
     # -------- Graphique CDF comparatif par scénario avec matplotlib --------
-    st.subheader("CDF comparatif des scénarios (trait plein / pointillé par paire)")
+    st.subheader("CDF comparatif des 6 scénarios")
 
     # Définir les paires de scénarios et leurs couleurs
     scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
@@ -382,9 +381,8 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
-
     # Heatmap des écarts des percentiles par mois et scénario
-    st.subheader(f"Ecarts des percentiles (Modèle - +{scenario_sel}/{ville_sel})")
+    st.subheader(f"Ecarts des percentiles (Modèle - TRACC +{scenario_sel}/{ville_sel})")
     ref_model = {}
     for mois in range(1, 13):
         obs_mois = obs_mois_all[mois-1]
