@@ -27,6 +27,11 @@ villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNAGE", "NANCY", "RENNES", "TOURS"
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]
 percentiles_list = [10, 25, 50, 75, 90]
 
+vmaxT=5
+vminT=-5
+vmaxP=100
+vminP=60
+
 # -------- Noms des mois --------
 mois_noms = {
     1: "01 - Janvier",   2: "02 - Février",  3: "03 - Mars",
@@ -105,7 +110,7 @@ if uploaded:
     df_rmse = pd.DataFrame(results_rmse)
     df_rmse_styled = (
         df_rmse.style
-        .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", vmin=60, vmax=100, axis=None)
+        .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", vmin=vminP, vmax=vmaxP, axis=None)
         .format({"Précision percentile (%)": "{:.2f}", "RMSE (°C)": "{:.2f}"})
     )
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
@@ -250,7 +255,7 @@ if uploaded:
 
     df_temp_precision = pd.DataFrame(results_temp)
     df_temp_precision_styled = df_temp_precision.style \
-        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", vmin=60, vmax=100, axis=None) \
+        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", vmin=vminP, vmax=vmaxP, axis=None) \
         .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
 
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
@@ -431,7 +436,7 @@ if uploaded:
     # Affichage stylé avec couleurs selon l'écart
     st.dataframe(
         df_bilan_pivot.style
-        .background_gradient(cmap="jet", vmin=-5, vmax=5)
+        .background_gradient(cmap="jet", vmin=vminT, vmax=vmaxT)
         .format("{:.2f}")
     )
     # -------- Section multi-scénarios pour la ville --------
@@ -557,5 +562,5 @@ if uploaded:
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
         st.write(f"Percentile {p} / Modèle - TRACC +{scenario_sel}/{ville_sel}")
-        st.dataframe(df_pivot.style.background_gradient(cmap="jet", vmin=-5, vmax=5).format("{:.2f}"))
+        st.dataframe(df_pivot.style.background_gradient(cmap="jet", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
 
