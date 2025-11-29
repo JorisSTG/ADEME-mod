@@ -29,8 +29,12 @@ percentiles_list = [10, 25, 50, 75, 90]
 
 vmaxT=5
 vminT=-5
+
 vmaxP=100
 vminP=60
+
+vmaxH=48
+vminH=-48
 
 # -------- Noms des mois --------
 mois_noms = {
@@ -171,7 +175,7 @@ if uploaded:
     # Style : seuils supérieurs → rouge = plus chaud
     df_sup_styled = (
         df_sup.style
-        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r", axis=None)
+        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="bwr", vmin=vminH, vmax=vmaxH, axis=None)
     )
     st.subheader("Nombre d'heures supérieur aux seuils")
     st.dataframe(df_sup_styled, hide_index=True)
@@ -180,7 +184,7 @@ if uploaded:
     # Pour inverser les couleurs, on peut juste inverser le cmap
     df_inf_styled = (
         df_inf.style
-        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu", axis=None)
+        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="bwr_r", vmin=vminH, vmax=vmaxH, axis=None)
     )
     st.subheader("Nombre d'heures inférieur aux seuils")
     st.dataframe(df_inf_styled, hide_index=True)
