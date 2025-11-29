@@ -209,7 +209,7 @@ if uploaded:
         mod_hourly = model_values[idx0:idx1]
         obs_counts = count_hours_in_bins(obs_hourly, bins)
         mod_counts = count_hours_in_bins(mod_hourly, bins)
-        total_hours = heures_par_mois[mois-1]
+        total_hours = heures_par_mois[mois_num-1]
         hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
         pct_precision = round(100 * (1 - hours_error / total_hours), 2)
         val_rmse = rmse_hours(obs_counts, mod_counts)
