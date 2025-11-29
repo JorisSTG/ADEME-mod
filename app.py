@@ -237,9 +237,16 @@ if uploaded:
             "Précision (%)": pct_precision
         })
 
+
     df_temp_precision_styled = df_temp_precision.style \
-    .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None)
+    .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
+    .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
+
+    st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
     st.dataframe(df_temp_precision_styled, hide_index=True)
+
+
+    
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
     st.dataframe(df_temp_precision, hide_index=True)
 
