@@ -33,8 +33,8 @@ vminT=-5
 vmaxP=100
 vminP=60
 
-vmaxH=48
-vminH=-48
+vmaxH=100
+vminH=-100
 
 # -------- Noms des mois --------
 mois_noms = {
