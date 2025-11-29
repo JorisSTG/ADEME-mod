@@ -25,7 +25,7 @@ st.title("Comparaison : Modèle / TRACC")
 scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]
 villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNAGE", "NANCY", "RENNES", "TOURS", "TRAPPES"]
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]
-percentiles_list = [5, 25, 50, 75, 95]
+percentiles_list = [10, 25, 50, 75, 90]
 
 # -------- Noms des mois --------
 mois_noms = {
