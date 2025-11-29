@@ -238,19 +238,15 @@ if uploaded:
         })
 
 
+    df_temp_precision = pd.DataFrame(results_temp)
+
     df_temp_precision_styled = df_temp_precision.style \
-    .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
-    .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
+        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
+        .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
 
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
     st.dataframe(df_temp_precision_styled, hide_index=True)
 
-
-    
-    st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
-    st.dataframe(df_temp_precision, hide_index=True)
-
-    
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
     df_percentiles_all = []
