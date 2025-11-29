@@ -249,8 +249,7 @@ if uploaded:
     
         results_tstats.append({
             "Mois": mois,
-            "Obs_Tn": obs_tn, "Obs_Tm": obs_tm, "Obs_Tx": obs_tx,
-            "Mod_Tn": mod_tn, "Mod_Tm": mod_tm, "Mod_Tx": mod_tx
+            "TRACC_Tn": obs_tn, "Modèle_Tn": mod_tn, "TRACC_Tm": obs_tm, "Modèle_Tm": mod_tm, "TRACC_Tx": obs_tx, "Modèle_Tx": mod_tx
         })
     
     df_tstats = pd.DataFrame(results_tstats)
@@ -259,14 +258,14 @@ if uploaded:
     fig, ax = plt.subplots(figsize=(14,4))
     
     # TRACC (observations) : Trait plein
-    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tn"], color="cyan", label="TRACC Tn", linestyle="-")
-    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tm"], color="white", label="TRACC Tmoy", linestyle="-")
-    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tx"], color="red", label="TRACC Tx", linestyle="-")
+    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tn"], color="cyan", label="TRACC Tn", linestyle="--")
+    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tm"], color="white", label="TRACC Tmoy", linestyle="--")
+    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tx"], color="red", label="TRACC Tx", linestyle="--")
     
     # Modèle : Trait pointillé
-    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tn"], color="cyan", label="Modèle Tn", linestyle="--")
-    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tm"], color="white", label="Modèle Tmoy", linestyle="--")
-    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tx"], color="red", label="Modèle Tx", linestyle="--")
+    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tn"], color="cyan", label="Modèle Tn", linestyle="-")
+    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tm"], color="white", label="Modèle Tmoy", linestyle="-")
+    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tx"], color="red", label="Modèle Tx", linestyle="-")
     
     ax.set_title(f"Tn / Tmoy / Tx – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
     ax.set_ylabel("Température (°C)")
