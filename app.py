@@ -305,11 +305,11 @@ if uploaded:
                 "Mod": mod_p[i]
             })
 
-# -------- Tableau bilan chaud/froid --------
-st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
-df_bilan = pd.DataFrame(df_percentiles_all).round(2)
-df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
-df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
+        # -------- Tableau bilan chaud/froid --------
+        st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
+        df_bilan = pd.DataFrame(df_percentiles_all).round(2)
+        df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
+        df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
 
 
 
