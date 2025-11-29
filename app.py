@@ -111,11 +111,11 @@ if uploaded:
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
     st.dataframe(df_rmse_styled, hide_index=True)
 
-   # -------- Seuils --------
+    # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
     t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
-    t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
-    t_inf_thresholds_list = [float(x.strip()) for x in t_inf_thresholds.split(",")]
+    t_sup_thresholds_list = [int(float(x.strip())) for x in t_sup_thresholds.split(",")]
+    t_inf_thresholds_list = [int(float(x.strip())) for x in t_inf_thresholds.split(",")]
     
     stats = []
     for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
@@ -132,7 +132,7 @@ if uploaded:
             ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
             stats.append({
                 "Mois": mois,
-                "Seuil": seuil,
+                "Seuil": f"{seuil}°C",  # affichage avec °C
                 "Type": "Supérieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
@@ -146,7 +146,7 @@ if uploaded:
             ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
             stats.append({
                 "Mois": mois,
-                "Seuil": seuil,
+                "Seuil": f"{seuil}°C",  # affichage avec °C
                 "Type": "Inférieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
@@ -156,6 +156,8 @@ if uploaded:
     # Création du DataFrame
     df_stats = pd.DataFrame(stats)
     st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
+    
+    # Conversion en int pour les colonnes heures et écart
     df_stats["Heures Modèle"] = df_stats["Heures Modèle"].astype(int)
     df_stats["Heures TRACC"] = df_stats["Heures TRACC"].astype(int)
     df_stats["Ecart (Modèle - TRACC)"] = df_stats["Ecart (Modèle - TRACC)"].astype(int)
@@ -166,6 +168,7 @@ if uploaded:
         .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r", axis=None)
     )
     st.dataframe(df_stats_styled, hide_index=True)
+
 
 
     # -------- Histogrammes par plage de température --------
