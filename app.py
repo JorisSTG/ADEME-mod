@@ -96,8 +96,17 @@ if uploaded:
 
     # -------- DataFrame final --------
     df_rmse = pd.DataFrame(results_rmse)
+
+    # Appliquer un dégradé de couleurs à la colonne "RMSE_percentiles"
+    df_rmse_styled = df_rmse.style.background_gradient(
+        subset=["RMSE_percentiles"],  # Remplace par le nom de ta colonne si différent
+        cmap="RdYlGn_r",  # Rouge -> Jaune -> Vert (inversé pour rouge = haut, vert = bas)
+        axis=0
+    )
+
     st.subheader("Précision du modèle : RMSE mensuels et précision selon loi normale (%)")
-    st.dataframe(df_rmse, hide_index=True)
+    st.dataframe(df_rmse_styled, hide_index=True)
+
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
