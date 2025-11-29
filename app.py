@@ -153,7 +153,7 @@ if uploaded:
     st.dataframe(df_stats, hide_index=True)
 
     # -------- Histogrammes par plage de température --------
-    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel}")
+    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel} [X°C,X+1°C[")
     
     # Bins correspondant à [X, X+1[ pour chaque température entière
     bin_edges = np.arange(-5, 46, 1)  # bornes des bins
