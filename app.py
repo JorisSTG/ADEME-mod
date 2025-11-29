@@ -223,6 +223,64 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
+    # ============================
+    #   COURBES Tn / Tmoy / Tx
+    # ============================
+    st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
+    
+    # Calcul des Tn/Tmoy/Tx pour 12 mois
+    results_tstats = []
+    for mois_num in range(1, 12+1):
+        mois = mois_noms[mois_num]
+    
+        # Observations
+        obs_vals = obs_mois_all[mois_num-1]
+        obs_tn = np.min(obs_vals)
+        obs_tm = np.mean(obs_vals)
+        obs_tx = np.max(obs_vals)
+    
+        # Modèle
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        mod_vals = model_values[idx0:idx1]
+        mod_tn = np.min(mod_vals)
+        mod_tm = np.mean(mod_vals)
+        mod_tx = np.max(mod_vals)
+    
+        results_tstats.append({
+            "Mois": mois,
+            "Obs_Tn": obs_tn, "Obs_Tm": obs_tm, "Obs_Tx": obs_tx,
+            "Mod_Tn": mod_tn, "Mod_Tm": mod_tm, "Mod_Tx": mod_tx
+        })
+    
+    df_tstats = pd.DataFrame(results_tstats)
+    
+    # ---- Plot ----
+    fig, ax = plt.subplots(figsize=(14,4))
+    
+    # TRACC (observations) : Trait plein
+    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tn"], color="cyan", label="TRACC Tn", linestyle="-")
+    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tm"], color="white", label="TRACC Tmoy", linestyle="-")
+    ax.plot(df_tstats["Mois"], df_tstats["Obs_Tx"], color="red", label="TRACC Tx", linestyle="-")
+    
+    # Modèle : Trait pointillé
+    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tn"], color="cyan", label="Modèle Tn", linestyle="--")
+    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tm"], color="white", label="Modèle Tmoy", linestyle="--")
+    ax.plot(df_tstats["Mois"], df_tstats["Mod_Tx"], color="red", label="Modèle Tx", linestyle="--")
+    
+    ax.set_title(f"Tn / Tmoy / Tx – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
+    ax.set_ylabel("Température (°C)")
+    ax.tick_params(axis='x', rotation=45)
+    ax.legend(facecolor="black")
+    
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # ---- Tableau correspondant ----
+    st.write("Tableau Tn / Tmoy / Tx")
+    st.dataframe(df_tstats.round(2), hide_index=True)
+
+
     # -------- Précision par créneau horaire --------
     results_temp = []
     def rmse_hours(obs_counts, mod_counts):
@@ -254,6 +312,44 @@ if uploaded:
 
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
     st.dataframe(df_temp_precision_styled, hide_index=True)
+
+
+    # ======================================
+    #  COURBES DES PERCENTILES PAR MOIS
+    # ======================================
+    st.subheader("Évolution mensuelle des percentiles (Modèle vs TRACC)")
+    
+    # Table ordonnée pour faciliter les tracés
+    df_percentiles_ordered = (
+        pd.DataFrame(df_percentiles_all)
+        .assign(Pnum=lambda d: d["Percentile"].str.extract("(\d+)").astype(int))
+        .sort_values(["Pnum", "Mois"])
+    )
+    
+    # Construction du graphique par percentile
+    fig, ax = plt.subplots(figsize=(14,5))
+    
+    for p in percentiles_list:
+        dfp = df_percentiles_ordered[df_percentiles_ordered["Pnum"] == p]
+    
+        # TRACC : ligne pleine
+        ax.plot(
+            dfp["Mois"], dfp["Obs"],
+            linestyle="-", marker="o", label=f"TRACC P{p}"
+        )
+        # Modèle : ligne pointillée
+        ax.plot(
+            dfp["Mois"], dfp["Mod"],
+            linestyle="--", marker="o", label=f"Modèle P{p}"
+        )
+    
+    ax.set_title(f"Percentiles {percentiles_list} – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
+    ax.set_ylabel("Température (°C)")
+    ax.tick_params(axis="x", rotation=45)
+    ax.legend(ncol=2, facecolor="black")
+    st.pyplot(fig)
+    plt.close(fig)
+
 
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
