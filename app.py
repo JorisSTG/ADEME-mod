@@ -175,7 +175,7 @@ if uploaded:
     # Pour inverser les couleurs, on peut juste inverser le cmap
     df_inf_styled = (
         df_inf.style
-        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r_r", axis=None)
+        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu", axis=None)
     )
     st.subheader("Nombre d'heures inférieur aux seuils")
     st.dataframe(df_inf_styled, hide_index=True)
