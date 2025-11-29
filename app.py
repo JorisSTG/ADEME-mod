@@ -352,7 +352,7 @@ if uploaded:
     # Construction du graphique par percentile
     fig, ax = plt.subplots(figsize=(14,5))
 
-    for p in percentiles_list:
+    for p in percentiles_list2:
         dfp = df_percentiles_ordered[df_percentiles_ordered["Pnum"] == p]
     
         # TRACC : ligne pleine
