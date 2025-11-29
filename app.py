@@ -470,6 +470,7 @@ if uploaded:
         mois = mois_noms[mois_num]
     
         fig, ax = plt.subplots(figsize=(12, 4))
+        ax.set_ylim(-5, 45)
     
         # ------------------------------
         # EXTRACTION MODELE CSV (en blanc)
@@ -483,9 +484,9 @@ if uploaded:
         ax.plot(
             np.linspace(0, 100, 100),
             cdf_model,
-            label="Modèle (CSV)",
+            label="Modèle",
             color="white",
-            linewidth=2.5,
+            linewidth=2,
             linestyle="-"
         )
     
@@ -493,6 +494,7 @@ if uploaded:
         # COURBES DES SCÉNARIOS
         # ------------------------------
         for i, (sc1, sc2) in enumerate(scenario_pairs):
+            ax.set_ylim(-5, 45)
             color = colors[i]
     
             # ---- Scénario 1 (trait plein) ----
