@@ -358,12 +358,12 @@ if uploaded:
         # TRACC : ligne pleine
         ax.plot(
             dfp["Mois"], dfp["Obs"],
-            linestyle="-", label=f"TRACC P{p}", color=colors_perc[i]
+            linestyle="--", label=f"TRACC P{p}", color=colors_perc[i]
         )
         # Modèle : ligne pointillée
         ax.plot(
             dfp["Mois"], dfp["Mod"],
-            linestyle="--", label=f"Modèle P{p}", color=colors_perc[i]
+            linestyle="-", label=f"Modèle P{p}", color=colors_perc[i]
         )
         i+=1
     
