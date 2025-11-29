@@ -156,13 +156,15 @@ if uploaded:
     # Création du DataFrame
     df_stats = pd.DataFrame(stats)
     st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
+    df_stats["Heures Modèle"] = df_stats["Heures Modèle"].astype(int)
+    df_stats["Heures TRACC"] = df_stats["Heures TRACC"].astype(int)
+    df_stats["Ecart (Modèle - TRACC)"] = df_stats["Ecart (Modèle - TRACC)"].astype(int)
     
     # Style : dégradé bleu → rouge sur la colonne écart
     df_stats_styled = (
         df_stats.style
         .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r", axis=None)
     )
-    
     st.dataframe(df_stats_styled, hide_index=True)
 
 
