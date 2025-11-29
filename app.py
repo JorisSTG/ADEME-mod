@@ -99,7 +99,8 @@ if uploaded:
 
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
         obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
-
+        obs_mois_all.append(obs_mois_vals)
+        
         # RMSE (inchangé)
         val_rmse = rmse(mod_mois, obs_mois_vals)
 
