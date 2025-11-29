@@ -116,7 +116,7 @@ if uploaded:
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
-            ecart = nb_heures_mod - heures_obs -
+            ecart = nb_heures_mod - heures_obs
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
