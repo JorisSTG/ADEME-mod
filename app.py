@@ -154,29 +154,37 @@ if uploaded:
 
     # -------- Histogrammes par plage de température --------
     st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel}")
-    bins = np.arange(-5, 46, 1)
-    bin_centers = (bins[:-1] + bins[1:]) / 2
-    bin_centers_int = bin_centers.astype(int)
-    bin_labels = [str(int(x)) for x in bin_centers]
-
+    
+    # Bins correspondant à [X, X+1[ pour chaque température entière
+    bin_edges = np.arange(-5, 46, 1)  # bornes des bins
+    bin_labels = bin_edges[:-1].astype(int)  # labels = début de l'intervalle
+    
     def count_hours_in_bins(temp_hourly, bins):
         counts, _ = np.histogram(temp_hourly, bins=bins)
         return counts
-
+    
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
+        
+        # Observations
         obs_hourly = obs_mois_all[mois_num-1]
-        obs_counts = count_hours_in_bins(obs_hourly, bins)
+        obs_counts = count_hours_in_bins(obs_hourly, bin_edges)
+        
+        # Modèle
         idx0 = sum(heures_par_mois[:mois_num-1])
         idx1 = sum(heures_par_mois[:mois_num])
         mod_hourly = model_values[idx0:idx1]
-        mod_counts = count_hours_in_bins(mod_hourly, bins)
+        mod_counts = count_hours_in_bins(mod_hourly, bin_edges)
+        
+        # Préparer le DataFrame pour le plot
         df_plot = pd.DataFrame({
-            "Temp_Num": bin_centers_int,
-            "Température": bin_labels,
+            "Temp_Num": bin_labels,
+            "Température": bin_labels.astype(str),
             "TRACC": obs_counts,
             "Modèle": mod_counts
         }).sort_values("Temp_Num")
+        
+        # Création du plot
         fig, ax = plt.subplots(figsize=(14, 4))
         ax.bar(df_plot["Temp_Num"] - 0.2, df_plot["TRACC"], width=0.4, label=f"TRACC +{scenario_sel}/{ville_sel}", color="blue")
         ax.bar(df_plot["Temp_Num"] + 0.2, df_plot["Modèle"], width=0.4, label="Modèle", color="red")
