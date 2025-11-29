@@ -204,6 +204,11 @@ if uploaded:
     # ---- Calcul et affichage ----
     results_temp = []
 
+    def rmse_hours(obs_counts, mod_counts):
+        """RMSE sur les heures par créneau de température."""
+        min_len = min(len(obs_counts), len(mod_counts))
+        return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
+
     for mois in range(1, 13):
         obs_hourly = obs_mois_all[mois-1]
         idx0 = sum(heures_par_mois[:mois-1])
@@ -220,10 +225,11 @@ if uploaded:
         hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
         pct_precision = round(100 * (1 - hours_error / total_hours), 2)
 
+        val_rmse = rmse_hours(obs_counts, mod_counts)
+        
         results_temp.append({
             "Mois": mois,
             "RMSE heures": round(val_rmse,2),
-            "Sigma_obs": round(sigma_obs,2),
             "Précision (%)": pct_precision
         })
 
