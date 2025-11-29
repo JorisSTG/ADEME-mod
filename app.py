@@ -318,7 +318,31 @@ if uploaded:
     #  COURBES DES PERCENTILES PAR MOIS
     # ======================================
     st.subheader("Évolution mensuelle des percentiles (Modèle vs TRACC)")
+    # ======================================
+    # PRÉPARATION PERCENTILES (Modèle + TRACC)
+    # ======================================
+    df_percentiles_all = []
     
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+    
+        # Observations
+        obs_vals = obs_mois_all[mois_num-1]
+    
+        # Modèle
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        mod_vals = model_values[idx0:idx1]
+    
+        # Ajout des percentiles
+        for p in percentiles_list:
+            df_percentiles_all.append({
+                "Mois": mois,
+                "Percentile": f"P{p}",
+                "Obs": np.percentile(obs_vals, p),
+                "Mod": np.percentile(mod_vals, p)
+            })
+
     # Table ordonnée pour faciliter les tracés
     df_percentiles_ordered = (
         pd.DataFrame(df_percentiles_all)
