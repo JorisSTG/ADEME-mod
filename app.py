@@ -289,27 +289,13 @@ if uploaded:
         obs_p = np.percentile(obs_mois, percentiles_list)
         mod_p = np.percentile(mod_mois, percentiles_list)
         df_p = pd.DataFrame({
-            "Percentile": percentiles_list,  # numérique pour le tri
-            "Percentile_str": [f"P{p}" for p in percentiles_list],  # pour affichage
+            "Percentile": [f"P{p}" for p in percentiles_list],
             f"TRACC +{scenario_sel}/{ville_sel}": obs_p,
             "Modèle": mod_p
         }).round(2)
 
-        # Affichage en gardant l'ordre naturel des percentiles
         st.write(f"Mois {mois} - Percentiles")
-        st.dataframe(df_p[["Percentile_str", f"TRACC +{scenario_sel}/{ville_sel}", "Modèle"]].rename(columns={"Percentile_str": "Percentile"}), hide_index=True)
-
-        # Pour le bilan
-        for i, p in enumerate(percentiles_list):
-            df_percentiles_all.append({
-                "Mois": mois,
-                "Percentile_val": p,  # numérique pour le tri
-                "Percentile": f"P{p}",  # pour affichage
-                "Obs": obs_p[i],
-                "Mod": mod_p[i]
-            })
-
-
+        st.dataframe(df_p, hide_index=True)
 
         for i, p in enumerate(percentiles_list):
             df_percentiles_all.append({
@@ -319,14 +305,12 @@ if uploaded:
                 "Mod": mod_p[i]
             })
 
-    # -------- Tableau bilan chaud/froid --------
-    st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
-    df_bilan = pd.DataFrame(df_percentiles_all).round(2)
-    df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
+# -------- Tableau bilan chaud/froid --------
+st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
+df_bilan = pd.DataFrame(df_percentiles_all).round(2)
+df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
+df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
 
-    # Pivot en utilisant la colonne numérique pour trier
-    df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart")
-    df_bilan_pivot = df_bilan_pivot.loc[[f"P{p}" for p in sorted(percentiles_list)]]
 
 
     def color_map(val):
