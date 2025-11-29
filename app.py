@@ -296,17 +296,30 @@ if uploaded:
                 "Mod": mod_p[i]
             })
 
-    st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
+    st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)") 
+    # Création du DataFrame
     df_bilan = pd.DataFrame(df_percentiles_all).round(2)
     df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
+    # Extraire le numéro du percentile (5, 25, ...) pour imposer l'ordre
+    df_bilan["Percentile_num"] = df_bilan["Percentile"].str.extract("(\d+)").astype(int)
+    # Imposer l'ordre des percentiles
+    df_bilan["Percentile"] = pd.Categorical(df_bilan["Percentile"], 
+                                            categories=[f"P{p}" for p in percentiles_list], 
+                                            ordered=True)
+    # Pivot pour affichage
     df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
-    st.dataframe(df_bilan_pivot.style.applymap(lambda val: f"background-color: rgba(255,0,0,{min(val/5,1)})" if val > 0 else f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})").format("{:.2f}"))
-
+    # Affichage stylé avec couleurs selon l'écart
+    st.dataframe(
+        df_bilan_pivot.style.applymap(
+            lambda val: f"background-color: rgba(255,0,0,{min(val/5,1)})" if val > 0 
+                        else f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
+        ).format("{:.2f}")
+    )
     # -------- Section multi-scénarios pour la ville --------
     st.subheader(f"Comparaison multi-scénarios pour {ville_sel}")
+
     
     df_percentiles_scenarios = []
-    
     for scenario in scenarios:
         nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
         ds = xr.open_dataset(nc_file, decode_times=True)
