@@ -161,11 +161,6 @@ if uploaded:
     df_stats_styled = (
         df_stats.style
         .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r", axis=None)
-        .format({
-            "Heures Modèle": "{:.0f}",
-            "Heures TRACC": "{:.0f}",
-            "Ecart (Modèle - TRACC)": "{:.0f}"
-        })
     )
     
     st.dataframe(df_stats_styled, hide_index=True)
