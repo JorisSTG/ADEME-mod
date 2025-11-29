@@ -19,7 +19,19 @@ plt.rcParams.update({
     "text.color": "#FFFFFF",
 })
 
+
 st.title("Comparaison : Modèle / TRACC")
+
+st.markdown(
+    """
+    **Note sur les couleurs :**  
+    - Les couleurs visent à caractériser le **MODÈLE** (données issues du fichier `.csv` inséré).  
+    - Rouge → Modèle plus chaud que TRACC  
+    - Bleu → Modèle plus froid que TRACC  
+    - Pour les indicateurs de précision : vert → bon résultat, rouge → moins bon résultat
+    """,
+    unsafe_allow_html=True
+)
 
 # -------- Paramètres --------
 scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]
