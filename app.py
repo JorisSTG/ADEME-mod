@@ -468,30 +468,40 @@ if uploaded:
     
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
+    
         fig, ax = plt.subplots(figsize=(12, 4))
-        # -------------------------------
-        # 1) Courbe OBS de référence (blanc)
-        # -------------------------------
-        obs_mois = obs_mois_all[mois_num - 1]
-        obs_percentiles = np.percentile(obs_mois, np.linspace(0, 100, 100))
+    
+        # ------------------------------
+        # EXTRACTION MODELE CSV (en blanc)
+        # ------------------------------
+        idx0 = sum(heures_par_mois[:mois_num - 1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        mod_mois_csv = model_values[idx0:idx1]
+    
+        cdf_model = np.percentile(mod_mois_csv, np.linspace(0, 100, 100))
     
         ax.plot(
             np.linspace(0, 100, 100),
-            obs_percentiles,
+            cdf_model,
+            label="Modèle (CSV)",
             color="white",
             linewidth=2.5,
-            linestyle="-",
-            label="OBS"
+            linestyle="-"
         )
+    
+        # ------------------------------
+        # COURBES DES SCÉNARIOS
+        # ------------------------------
         for i, (sc1, sc2) in enumerate(scenario_pairs):
             color = colors[i]
     
-            # Premier scénario : trait plein
+            # ---- Scénario 1 (trait plein) ----
             nc_file = os.path.join(base_folder, sc1, f"{ville_sel}.nc")
             ds = xr.open_dataset(nc_file, decode_times=True)
-            temps = ds["T2m"].to_series().values
-            obs_mois = temps[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
-            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
+            temp = ds["T2m"].to_series().values
+            mod_mois = temp[idx0:idx1]
+            cdf_values = np.percentile(mod_mois, np.linspace(0, 100, 100))
+    
             ax.plot(
                 np.linspace(0, 100, 100),
                 cdf_values,
@@ -500,12 +510,13 @@ if uploaded:
                 linestyle="-"
             )
     
-            # Deuxième scénario : trait pointillé
+            # ---- Scénario 2 (pointillé) ----
             nc_file = os.path.join(base_folder, sc2, f"{ville_sel}.nc")
             ds = xr.open_dataset(nc_file, decode_times=True)
-            temps = ds["T2m"].to_series().values
-            obs_mois = temps[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
-            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
+            temp = ds["T2m"].to_series().values
+            mod_mois = temp[idx0:idx1]
+            cdf_values = np.percentile(mod_mois, np.linspace(0, 100, 100))
+    
             ax.plot(
                 np.linspace(0, 100, 100),
                 cdf_values,
@@ -514,15 +525,19 @@ if uploaded:
                 linestyle="--"
             )
     
+        # ------------------------------
+        # Mise en forme
+        # ------------------------------
         ax.set_title(f"{mois} - CDF comparatif par scénario", color="white")
         ax.set_xlabel("Percentile", color="white")
         ax.set_ylabel("Température (°C)", color="white")
         ax.tick_params(colors="white")
         ax.legend(facecolor="black")
         ax.set_facecolor("none")
+    
         st.pyplot(fig)
         plt.close(fig)
-    
+
     # -------- Heatmap des écarts des percentiles par mois et scénario --------
     st.subheader(f"Ecarts des percentiles (Modèle - TRACC +{scenario_sel}/{ville_sel})")
     
