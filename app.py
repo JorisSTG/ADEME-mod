@@ -156,7 +156,7 @@ if uploaded:
     st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel} [X°C,X+1°C[")
     
     # Bins correspondant à [X, X+1[ pour chaque température entière
-    bin_edges = np.arange(-5, 46, 1)  # bornes des bins
+    bin_edges = bins = np.arange(-5, 46, 1)  # bornes des bins
     bin_labels = bin_edges[:-1].astype(int)  # labels = début de l'intervalle
     
     def count_hours_in_bins(temp_hourly, bins):
