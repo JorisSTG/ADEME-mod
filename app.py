@@ -116,44 +116,55 @@ if uploaded:
     t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
     t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
     t_inf_thresholds_list = [float(x.strip()) for x in t_inf_thresholds.split(",")]
-
+    
     stats = []
     for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
         mois = mois_noms[mois_num]
         mod_mois = model_values[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
         obs_mois = obs_mois_all[mois_num-1]
-
+    
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
-            if heures_bos == 0:
-                ecart = 0
-            else:
-                ecart = nb_heures_mod / heures_obs
+            ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Supérieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
-                "Ration (Modèle/TRACC)": ecart
+                "Ecart (Modèle - TRACC)": ecart
             })
         for seuil in t_inf_thresholds_list:
             heures_obs = np.sum(obs_mois < seuil)
             nb_heures_mod = np.sum(mod_mois < seuil)
-            ecart =  100*(nb_heures_mod - heures_obs)/heures_obs
+            ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Inférieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
-                "Ecart (%) (Modèle - TRACC)/TRACC": ecart
+                "Ecart (Modèle - TRACC)": ecart
             })
-
+    
     df_stats = pd.DataFrame(stats).round(2)
     st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
     st.dataframe(df_stats, hide_index=True)
+    
+    # -------- Heatmap des écarts --------
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    
+    # Pivot pour heatmap : lignes = mois, colonnes = seuils, valeurs = écart
+    for typ in ["Supérieur", "Inférieur"]:
+        df_pivot = df_stats[df_stats["Type"] == typ].pivot(index="Mois", columns="Seuil", values="Ecart (Modèle - TRACC)")
+        fig, ax = plt.subplots(figsize=(8, 4))
+        sns.heatmap(df_pivot, annot=True, fmt=".0f", cmap="RdBu_r", center=0, cbar_kws={'label': 'Ecart (h)'}, ax=ax)
+        ax.set_title(f"Ecart horaire Modèle - TRACC ({typ})")
+        st.pyplot(fig)
+        plt.close(fig)
+
 
     # -------- Histogrammes par plage de température --------
     st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel} [X°C,X+1°C[")
