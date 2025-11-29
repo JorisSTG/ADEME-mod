@@ -319,7 +319,7 @@ if uploaded:
     # PRÉPARATION PERCENTILES (Modèle + TRACC)
     # ======================================
     df_percentiles_all = []
-    percentiles_list2 = [25,50,75]
+    percentiles_list2 = [10,50,90]
     
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
@@ -355,12 +355,12 @@ if uploaded:
     i=0
     for p in percentiles_list2:
         dfp = df_percentiles_ordered[df_percentiles_ordered["Pnum"] == p]
-        # TRACC : ligne pleine
+        # TRACC : ligne pointillée
         ax.plot(
             dfp["Mois"], dfp["Obs"],
             linestyle="--", label=f"TRACC P{p}", color=colors_perc[i]
         )
-        # Modèle : ligne pointillée
+        # Modèle : ligne pleinne
         ax.plot(
             dfp["Mois"], dfp["Mod"],
             linestyle="-", label=f"Modèle P{p}", color=colors_perc[i]
