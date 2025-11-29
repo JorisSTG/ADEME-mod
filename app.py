@@ -205,7 +205,6 @@ if uploaded:
     results_temp = []
 
     def rmse_hours(obs_counts, mod_counts):
-        """RMSE sur les heures par créneau de température."""
         min_len = min(len(obs_counts), len(mod_counts))
         return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
 
@@ -234,7 +233,7 @@ if uploaded:
         })
 
     df_temp_precision = pd.DataFrame(results_temp)
-    st.subheader(f"Précision du modèle par créneau horaire de température ({scenario_sel}/{ville_sel})")
+    st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
     st.dataframe(df_temp_precision, hide_index=True)
 
     
