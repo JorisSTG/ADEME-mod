@@ -351,20 +351,21 @@ if uploaded:
     
     # Construction du graphique par percentile
     fig, ax = plt.subplots(figsize=(14,5))
-
+    colors_perc = ["darkcyan", "khaki", "firebrick"]
+    i=0
     for p in percentiles_list2:
         dfp = df_percentiles_ordered[df_percentiles_ordered["Pnum"] == p]
-    
         # TRACC : ligne pleine
         ax.plot(
             dfp["Mois"], dfp["Obs"],
-            linestyle="-", label=f"TRACC P{p}"
+            linestyle="-", label=f"TRACC P{p}", color=colors_perc[i]
         )
         # Modèle : ligne pointillée
         ax.plot(
             dfp["Mois"], dfp["Mod"],
-            linestyle="--", label=f"Modèle P{p}"
+            linestyle="--", label=f"Modèle P{p}", color=colors_perc[i]
         )
+        i+=1
     
     ax.set_title(f"Percentiles {percentiles_list} – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
     ax.set_ylabel("Température (°C)")
