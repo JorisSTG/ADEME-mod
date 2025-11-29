@@ -223,7 +223,40 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
-    # ============================
+
+    # -------- Précision par créneau horaire --------
+    results_temp = []
+    def rmse_hours(obs_counts, mod_counts):
+        min_len = min(len(obs_counts), len(mod_counts))
+        return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
+
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+        obs_hourly = obs_mois_all[mois_num-1]
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        mod_hourly = model_values[idx0:idx1]
+        obs_counts = count_hours_in_bins(obs_hourly, bins)
+        mod_counts = count_hours_in_bins(mod_hourly, bins)
+        total_hours = 2*heures_par_mois[mois_num-1]
+        hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
+        pct_precision = round(100 * (1 - hours_error / total_hours), 2)
+        val_rmse = rmse_hours(obs_counts, mod_counts)
+        results_temp.append({
+            "Mois": mois,
+            "RMSE heures": round(val_rmse,2),
+            "Précision (%)": pct_precision
+        })
+
+    df_temp_precision = pd.DataFrame(results_temp)
+    df_temp_precision_styled = df_temp_precision.style \
+        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
+        .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
+
+    st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
+    st.dataframe(df_temp_precision_styled, hide_index=True)
+
+        # ============================
     #   COURBES Tn / Tmoy / Tx
     # ============================
     st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
@@ -258,12 +291,11 @@ if uploaded:
     fig, ax = plt.subplots(figsize=(14,4))
 
     ax.plot(df_tstats["Mois"], df_tstats["Modèle_Tx"], color="red", label="Modèle Tx", linestyle="-")
-    ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tx"], color="red", label="TRACC Tx", linestyle="--")
-    
     ax.plot(df_tstats["Mois"], df_tstats["Modèle_Tm"], color="white", label="Modèle Tmoy", linestyle="-")
-    ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tm"], color="white", label="TRACC Tmoy", linestyle="--")
-
     ax.plot(df_tstats["Mois"], df_tstats["Modèle_Tn"], color="cyan", label="Modèle Tn", linestyle="-")
+
+    ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tx"], color="red", label="TRACC Tx", linestyle="--")
+    ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tm"], color="white", label="TRACC Tmoy", linestyle="--")
     ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tn"], color="cyan", label="TRACC Tn", linestyle="--")
 
     ax.set_title(f"Tn / Tmoy / Tx – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
@@ -277,39 +309,6 @@ if uploaded:
     # ---- Tableau correspondant ----
     st.write("Tableau Tn / Tmoy / Tx")
     st.dataframe(df_tstats.round(2), hide_index=True)
-
-
-    # -------- Précision par créneau horaire --------
-    results_temp = []
-    def rmse_hours(obs_counts, mod_counts):
-        min_len = min(len(obs_counts), len(mod_counts))
-        return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
-
-    for mois_num in range(1, 13):
-        mois = mois_noms[mois_num]
-        obs_hourly = obs_mois_all[mois_num-1]
-        idx0 = sum(heures_par_mois[:mois_num-1])
-        idx1 = sum(heures_par_mois[:mois_num])
-        mod_hourly = model_values[idx0:idx1]
-        obs_counts = count_hours_in_bins(obs_hourly, bins)
-        mod_counts = count_hours_in_bins(mod_hourly, bins)
-        total_hours = 2*heures_par_mois[mois_num-1]
-        hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
-        pct_precision = round(100 * (1 - hours_error / total_hours), 2)
-        val_rmse = rmse_hours(obs_counts, mod_counts)
-        results_temp.append({
-            "Mois": mois,
-            "RMSE heures": round(val_rmse,2),
-            "Précision (%)": pct_precision
-        })
-
-    df_temp_precision = pd.DataFrame(results_temp)
-    df_temp_precision_styled = df_temp_precision.style \
-        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
-        .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
-
-    st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
-    st.dataframe(df_temp_precision_styled, hide_index=True)
 
 
     # ======================================
