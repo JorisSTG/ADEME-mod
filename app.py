@@ -111,7 +111,7 @@ if uploaded:
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
     st.dataframe(df_rmse_styled, hide_index=True)
 
-    # -------- Seuils --------
+   # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
     t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
     t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
@@ -120,9 +120,12 @@ if uploaded:
     stats = []
     for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
         mois = mois_noms[mois_num]
-        mod_mois = model_values[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        mod_mois = model_values[idx0:idx1]
         obs_mois = obs_mois_all[mois_num-1]
     
+        # Seuils supérieurs
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
@@ -135,6 +138,8 @@ if uploaded:
                 "Heures TRACC": heures_obs,
                 "Ecart (Modèle - TRACC)": ecart
             })
+        
+        # Seuils inférieurs
         for seuil in t_inf_thresholds_list:
             heures_obs = np.sum(obs_mois < seuil)
             nb_heures_mod = np.sum(mod_mois < seuil)
@@ -148,22 +153,22 @@ if uploaded:
                 "Ecart (Modèle - TRACC)": ecart
             })
     
+    # Création du DataFrame
     df_stats = pd.DataFrame(stats).round(2)
     st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
-    st.dataframe(df_stats, hide_index=True)
     
-    # -------- Heatmap des écarts --------
-    import seaborn as sns
-    import matplotlib.pyplot as plt
+    # Style : dégradé bleu → rouge sur la colonne écart
+    df_stats_styled = (
+        df_stats.style
+        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r", axis=None)
+        .format({
+            "Heures Modèle": "{:.0f}",
+            "Heures TRACC": "{:.0f}",
+            "Ecart (Modèle - TRACC)": "{:.0f}"
+        })
+    )
     
-    # Pivot pour heatmap : lignes = mois, colonnes = seuils, valeurs = écart
-    for typ in ["Supérieur", "Inférieur"]:
-        df_pivot = df_stats[df_stats["Type"] == typ].pivot(index="Mois", columns="Seuil", values="Ecart (Modèle - TRACC)")
-        fig, ax = plt.subplots(figsize=(8, 4))
-        sns.heatmap(df_pivot, annot=True, fmt=".0f", cmap="RdBu_r", center=0, cbar_kws={'label': 'Ecart (h)'}, ax=ax)
-        ax.set_title(f"Ecart horaire Modèle - TRACC ({typ})")
-        st.pyplot(fig)
-        plt.close(fig)
+    st.dataframe(df_stats_styled, hide_index=True)
 
 
     # -------- Histogrammes par plage de température --------
