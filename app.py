@@ -154,7 +154,7 @@ if uploaded:
             })
     
     # Création du DataFrame
-    df_stats = pd.DataFrame(stats).round(2)
+    df_stats = pd.DataFrame(stats)
     st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
     
     # Style : dégradé bleu → rouge sur la colonne écart
