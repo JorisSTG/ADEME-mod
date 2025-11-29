@@ -117,7 +117,9 @@ if uploaded:
     t_sup_thresholds_list = [int(float(x.strip())) for x in t_sup_thresholds.split(",")]
     t_inf_thresholds_list = [int(float(x.strip())) for x in t_inf_thresholds.split(",")]
     
-    stats = []
+    stats_sup = []
+    stats_inf = []
+    
     for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
         mois = mois_noms[mois_num]
         idx0 = sum(heures_par_mois[:mois_num-1])
@@ -130,10 +132,9 @@ if uploaded:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
             ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
-            stats.append({
+            stats_sup.append({
                 "Mois": mois,
-                "Seuil (en °C)": f"{seuil}",  # affichage avec °C
-                "Type": "Supérieur",
+                "Seuil (°C)": f"{seuil}",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
                 "Ecart (Modèle - TRACC)": ecart
@@ -144,36 +145,44 @@ if uploaded:
             heures_obs = np.sum(obs_mois < seuil)
             nb_heures_mod = np.sum(mod_mois < seuil)
             ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
-            stats.append({
+            stats_inf.append({
                 "Mois": mois,
-                "Seuil (en °C)": f"{seuil}",  # affichage avec °C
-                "Type": "Inférieur",
+                "Seuil (°C)": f"{seuil}",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
                 "Ecart (Modèle - TRACC)": ecart
             })
     
-    # Création du DataFrame
-    df_stats = pd.DataFrame(stats)
-    st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
+    # Création des DataFrames
+    df_sup = pd.DataFrame(stats_sup)
+    df_inf = pd.DataFrame(stats_inf)
     
-    # Conversion en int pour les colonnes heures et écart
-    df_stats["Heures Modèle"] = df_stats["Heures Modèle"].astype(int)
-    df_stats["Heures TRACC"] = df_stats["Heures TRACC"].astype(int)
-    df_stats["Ecart (Modèle - TRACC)"] = df_stats["Ecart (Modèle - TRACC)"].astype(int)
+    # Conversion en int
+    for df in [df_sup, df_inf]:
+        df["Heures Modèle"] = df["Heures Modèle"].astype(int)
+        df["Heures TRACC"] = df["Heures TRACC"].astype(int)
+        df["Ecart (Modèle - TRACC)"] = df["Ecart (Modèle - TRACC)"].astype(int)
     
-    # Style : dégradé bleu → rouge sur la colonne écart
-    df_stats_styled = (
-        df_stats.style
+    # Style : seuils supérieurs → rouge = plus chaud
+    df_sup_styled = (
+        df_sup.style
         .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r", axis=None)
     )
-    st.dataframe(df_stats_styled, hide_index=True)
-
+    st.subheader("Nombre d'heures supérieur aux seuils")
+    st.dataframe(df_sup_styled, hide_index=True)
+    
+    # Style : seuils inférieurs → rouge = plus froid
+    # Pour inverser les couleurs, on peut juste inverser le cmap
+    df_inf_styled = (
+        df_inf.style
+        .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="RdBu_r_r", axis=None)
+    )
+    st.subheader("Nombre d'heures inférieur aux seuils")
+    st.dataframe(df_inf_styled, hide_index=True)
 
 
     # -------- Histogrammes par plage de température --------
     st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel} [X°C,X+1°C[")
-    
     # Bins correspondant à [X, X+1[ pour chaque température entière
     bin_edges = bins = np.arange(-5, 46, 1)  # bornes des bins
     bin_labels = bin_edges[:-1].astype(int)  # labels = début de l'intervalle
