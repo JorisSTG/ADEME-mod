@@ -265,3 +265,98 @@ if uploaded:
     df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
     df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
     st.dataframe(df_bilan_pivot.style.applymap(lambda val: f"background-color: rgba(255,0,0,{min(val/5,1)})" if val > 0 else f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})").format("{:.2f}"))
+
+    # -------- Section multi-scénarios pour la ville --------
+    st.subheader(f"Comparaison multi-scénarios pour {ville_sel}")
+    
+    df_percentiles_scenarios = []
+    
+    for scenario in scenarios:
+        nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
+        ds = xr.open_dataset(nc_file, decode_times=True)
+        temps = ds["T2m"].to_series().values
+        start_idx = 0
+        for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
+            mois = mois_noms[mois_num]
+            obs_mois = temps[start_idx:start_idx + nb_heures]
+            obs_p = np.percentile(obs_mois, percentiles_list)
+            for i, p in enumerate(percentiles_list):
+                df_percentiles_scenarios.append({
+                    "Scénario": scenario,
+                    "Mois": mois,
+                    "Percentile": f"P{p}",
+                    "Valeur": round(obs_p[i],2)
+                })
+            start_idx += nb_heures
+    
+    df_scenarios = pd.DataFrame(df_percentiles_scenarios)
+    
+    # -------- Graphique CDF comparatif par scénario avec matplotlib --------
+    st.subheader("CDF comparatif des 6 scénarios")
+    
+    scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
+    colors = ["green", "orange", "indigo"]  # couleur par paire
+    
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+        fig, ax = plt.subplots(figsize=(12, 4))
+        for i, (sc1, sc2) in enumerate(scenario_pairs):
+            color = colors[i]
+    
+            # Premier scénario : trait plein
+            nc_file = os.path.join(base_folder, sc1, f"{ville_sel}.nc")
+            ds = xr.open_dataset(nc_file, decode_times=True)
+            temps = ds["T2m"].to_series().values
+            obs_mois = temps[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
+            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
+            ax.plot(
+                np.linspace(0, 100, 100),
+                cdf_values,
+                label=f"{sc1}",
+                color=color,
+                linestyle="-"
+            )
+    
+            # Deuxième scénario : trait pointillé
+            nc_file = os.path.join(base_folder, sc2, f"{ville_sel}.nc")
+            ds = xr.open_dataset(nc_file, decode_times=True)
+            temps = ds["T2m"].to_series().values
+            obs_mois = temps[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
+            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
+            ax.plot(
+                np.linspace(0, 100, 100),
+                cdf_values,
+                label=f"{sc2}",
+                color=color,
+                linestyle="--"
+            )
+    
+        ax.set_title(f"{mois} - CDF comparatif par scénario", color="white")
+        ax.set_xlabel("Percentile", color="white")
+        ax.set_ylabel("Température (°C)", color="white")
+        ax.tick_params(colors="white")
+        ax.legend(facecolor="black")
+        ax.set_facecolor("none")
+        st.pyplot(fig)
+        plt.close(fig)
+    
+    # -------- Heatmap des écarts des percentiles par mois et scénario --------
+    st.subheader(f"Ecarts des percentiles (Modèle - TRACC +{scenario_sel}/{ville_sel})")
+    
+    # Création du dictionnaire de référence Modèle
+    ref_model = {}
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+        obs_mois = obs_mois_all[mois_num-1]
+        mod_mois = model_values[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
+        for i, p in enumerate(percentiles_list):
+            ref_model[(mois, f"P{p}")] = np.percentile(mod_mois, p)
+    
+    for p in percentiles_list:
+        df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
+        df_ecart["Ecart"] = -df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
+        df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
+        df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
+        st.write(f"Percentile {p} / Modèle - TRACC +{scenario_sel}/{ville_sel}")
+        st.dataframe(df_pivot.style.background_gradient(cmap="cool").format("{:.2f}"))
+
