@@ -319,6 +319,7 @@ if uploaded:
     # PRÉPARATION PERCENTILES (Modèle + TRACC)
     # ======================================
     df_percentiles_all = []
+    percentiles_list2 = [25,50,75]
     
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
@@ -330,9 +331,10 @@ if uploaded:
         idx0 = sum(heures_par_mois[:mois_num-1])
         idx1 = sum(heures_par_mois[:mois_num])
         mod_vals = model_values[idx0:idx1]
-    
+
+        
         # Ajout des percentiles
-        for p in percentiles_list:
+        for p in percentiles_list2:
             df_percentiles_all.append({
                 "Mois": mois,
                 "Percentile": f"P{p}",
@@ -349,19 +351,19 @@ if uploaded:
     
     # Construction du graphique par percentile
     fig, ax = plt.subplots(figsize=(14,5))
-    
+
     for p in percentiles_list:
         dfp = df_percentiles_ordered[df_percentiles_ordered["Pnum"] == p]
     
         # TRACC : ligne pleine
         ax.plot(
             dfp["Mois"], dfp["Obs"],
-            linestyle="-", marker="o", label=f"TRACC P{p}"
+            linestyle="-", label=f"TRACC P{p}"
         )
         # Modèle : ligne pointillée
         ax.plot(
             dfp["Mois"], dfp["Mod"],
-            linestyle="--", marker="o", label=f"Modèle P{p}"
+            linestyle="--", label=f"Modèle P{p}"
         )
     
     ax.set_title(f"Percentiles {percentiles_list} – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
