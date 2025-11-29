@@ -132,7 +132,7 @@ if uploaded:
             ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
             stats.append({
                 "Mois": mois,
-                "Seuil": f"{seuil}°C",  # affichage avec °C
+                "Seuil (en °C)": f"{seuil}",  # affichage avec °C
                 "Type": "Supérieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
@@ -146,7 +146,7 @@ if uploaded:
             ecart = nb_heures_mod - heures_obs  # Modèle - TRACC
             stats.append({
                 "Mois": mois,
-                "Seuil": f"{seuil}°C",  # affichage avec °C
+                "Seuil (en °C)": f"{seuil}",  # affichage avec °C
                 "Type": "Inférieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
