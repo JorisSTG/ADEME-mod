@@ -128,7 +128,7 @@ if uploaded:
             nb_heures_mod = np.sum(mod_mois > seuil)
             if heures_bos == 0:
                 ecart = 0
-            elif:
+            else:
                 ecart = nb_heures_mod / heures_obs
             stats.append({
                 "Mois": mois,
