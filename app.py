@@ -430,10 +430,9 @@ if uploaded:
     df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
     # Affichage stylé avec couleurs selon l'écart
     st.dataframe(
-        df_bilan_pivot.style.applymap(vmin=-5, vmax=5,
-            lambda val: f"background-color: rgba(255,0,0,{min(val/5,1)})" if val > 0 
-                        else f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
-        ).format("{:.2f}")
+        df_bilan_pivot.style
+        .background_gradient(cmap="jet", vmin=-5, vmax=5)
+        .format("{:.2f}")
     )
     # -------- Section multi-scénarios pour la ville --------
     st.subheader(f"Comparaison multi-scénarios pour {ville_sel}")
