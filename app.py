@@ -126,26 +126,26 @@ if uploaded:
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
-            ecart = nb_heures_mod - heures_obs
+            ecart = 100*(nb_heures_mod - heures_obs)/heure_obs
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Supérieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
-                "Ecart (Modèle - TRACC)": ecart
+                "Ecart (%) (Modèle - TRACC)/TRACC": ecart
             })
         for seuil in t_inf_thresholds_list:
             heures_obs = np.sum(obs_mois < seuil)
             nb_heures_mod = np.sum(mod_mois < seuil)
-            ecart =  nb_heures_mod - heures_obs
+            ecart =  100*(nb_heures_mod - heures_obs)/heure_obs
             stats.append({
                 "Mois": mois,
                 "Seuil": seuil,
                 "Type": "Inférieur",
                 "Heures Modèle": nb_heures_mod,
                 "Heures TRACC": heures_obs,
-                "Ecart (Modèle - TRACC)": ecart
+                "Ecart (%) (Modèle - TRACC)/TRACC": ecart
             })
 
     df_stats = pd.DataFrame(stats).round(2)
