@@ -105,7 +105,7 @@ if uploaded:
     df_rmse = pd.DataFrame(results_rmse)
     df_rmse_styled = (
         df_rmse.style
-        .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", axis=None)
+        .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", vmin=60, vmax=100, axis=None)
         .format({"Précision percentile (%)": "{:.2f}", "RMSE (°C)": "{:.2f}"})
     )
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
@@ -250,7 +250,7 @@ if uploaded:
 
     df_temp_precision = pd.DataFrame(results_temp)
     df_temp_precision_styled = df_temp_precision.style \
-        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
+        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", vmin=60, vmax=100, axis=None) \
         .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
 
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
@@ -430,7 +430,7 @@ if uploaded:
     df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
     # Affichage stylé avec couleurs selon l'écart
     st.dataframe(
-        df_bilan_pivot.style.applymap(
+        df_bilan_pivot.style.applymap(vmin=-5, vmax=5,
             lambda val: f"background-color: rgba(255,0,0,{min(val/5,1)})" if val > 0 
                         else f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
         ).format("{:.2f}")
@@ -558,5 +558,5 @@ if uploaded:
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
         st.write(f"Percentile {p} / Modèle - TRACC +{scenario_sel}/{ville_sel}")
-        st.dataframe(df_pivot.style.background_gradient(cmap="jet", vmin=-10, vmax=10).format("{:.2f}"))
+        st.dataframe(df_pivot.style.background_gradient(cmap="jet", vmin=-5, vmax=5).format("{:.2f}"))
 
