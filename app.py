@@ -8,19 +8,16 @@ from scipy.stats import norm
 
 # ---- STYLE sombre pour se fondre avec le thème Streamlit ----
 plt.style.use("dark_background")
-
-# Personnalisation pour coller exactement au thème Streamlit
 plt.rcParams.update({
-    "figure.facecolor": "none",      # fond totalement transparent
-    "axes.facecolor": "none",        # fond transparent
-    "savefig.facecolor": "none",     # export sans fond
-    "axes.edgecolor": "#FFFFFF",     # axes blancs
-    "axes.labelcolor": "#FFFFFF",    # labels blancs
+    "figure.facecolor": "none",
+    "axes.facecolor": "none",
+    "savefig.facecolor": "none",
+    "axes.edgecolor": "#FFFFFF",
+    "axes.labelcolor": "#FFFFFF",
     "xtick.color": "#DDDDDD",
     "ytick.color": "#DDDDDD",
     "text.color": "#FFFFFF",
 })
-
 
 st.title("Comparaison : Modèle / TRACC")
 
@@ -29,6 +26,14 @@ scenarios = ["2", "2_VC", "2-7", "2-7_VC", "4", "4_VC"]
 villes = ["AGEN", "CARPENTRAS", "MACON", "MARIGNAGE", "NANCY", "RENNES", "TOURS", "TRAPPES"]
 heures_par_mois = [744, 672, 744, 720, 744, 720, 744, 744, 720, 744, 720, 744]
 percentiles_list = [5, 25, 50, 75, 95]
+
+# -------- Noms des mois --------
+mois_noms = {
+    1: "Janvier",   2: "Février",  3: "Mars",
+    4: "Avril",     5: "Mai",      6: "Juin",
+    7: "Juillet",   8: "Août",     9: "Septembre",
+    10: "Octobre", 11: "Novembre", 12: "Décembre"
+}
 
 # -------- Choix scénario et ville --------
 scenario_sel = st.selectbox("Choisir le scénario :", scenarios)
@@ -48,63 +53,44 @@ if uploaded:
     obs_series = ds_obs["T2m"].to_series()
     df_obs = obs_series.reset_index()
     df_obs["year"] = df_obs["time"].dt.year
-    df_obs["month"] = df_obs["time"].dt.month
+    df_obs["month_num"] = df_obs["time"].dt.month
+    df_obs["month"] = df_obs["month_num"].map(mois_noms)
     df_obs["day"] = df_obs["time"].dt.day
 
-       # -------- RMSE --------
+    # -------- RMSE --------
     def rmse(a, b):
         min_len = min(len(a), len(b))
         a_sorted = np.sort(a[:min_len])
         b_sorted = np.sort(b[:min_len])
         return np.sqrt(np.nanmean((a_sorted - b_sorted) ** 2))
     
-    
     # -------- Précision basée sur les écarts de percentiles --------
     def precision_ecarts_percentiles(a, b):
-        """
-        Compare les distributions en prenant la somme des écarts absolus
-        sur les percentiles 1 à 99.
-        Renvoie une précision (%) entre 0 et 100.
-        """
-    
         if len(a) == 0 or len(b) == 0:
             return np.nan
-    
         percentiles = np.arange(1, 100)
         pa = np.percentile(a, percentiles)
         pb = np.percentile(b, percentiles)
-    
-        # somme des écarts
         sum_abs_diff = np.sum(np.abs(pa - pb))
-    
-        # normalisation :
-        # on divise par l'écart total des obs (max - min) pour obtenir un score cohérent
         scale = np.max(pb) - np.min(pb)
         if scale == 0:
             return 100.0
-    
         score = 100 * (1 - (sum_abs_diff / (scale * len(percentiles))))
-    
-        # bornage 0–100 %
         score = max(0, min(100, score))
         return round(score, 2)
 
-    
     # -------- Boucle sur les mois --------
     results_rmse = []
     obs_mois_all = []
     start_idx_model = 0
 
-    for mois, nb_heures in enumerate(heures_par_mois, start=1):
-
+    for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
+        mois = mois_noms[mois_num]
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
-        obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
+        obs_mois_vals = df_obs[df_obs["month_num"] == mois_num]["T2m"].values
         obs_mois_all.append(obs_mois_vals)
-        
-        # RMSE (inchangé)
-        val_rmse = rmse(mod_mois, obs_mois_vals)
 
-        # Précision basée sur les écarts des percentiles
+        val_rmse = rmse(mod_mois, obs_mois_vals)
         pct_precision = precision_ecarts_percentiles(mod_mois, obs_mois_vals)
 
         results_rmse.append({
@@ -117,31 +103,26 @@ if uploaded:
 
     # -------- DataFrame final --------
     df_rmse = pd.DataFrame(results_rmse)
-
     df_rmse_styled = (
         df_rmse.style
         .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", axis=None)
         .format({"Précision percentile (%)": "{:.2f}", "RMSE (°C)": "{:.2f}"})
     )
-
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
     st.dataframe(df_rmse_styled, hide_index=True)
-
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
     t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
-
-    # -------- Nombre d'heures sup/inf et écart obs-mod --------
     t_sup_thresholds_list = [float(x.strip()) for x in t_sup_thresholds.split(",")]
     t_inf_thresholds_list = [float(x.strip()) for x in t_inf_thresholds.split(",")]
 
     stats = []
+    for mois_num, nb_heures in enumerate(heures_par_mois, start=1):
+        mois = mois_noms[mois_num]
+        mod_mois = model_values[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
+        obs_mois = obs_mois_all[mois_num-1]
 
-    for mois, nb_heures in enumerate(heures_par_mois, start=1):
-        mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-        obs_mois = obs_mois_all[mois-1]
-        
         for seuil in t_sup_thresholds_list:
             heures_obs = np.sum(obs_mois > seuil)
             nb_heures_mod = np.sum(mod_mois > seuil)
@@ -171,16 +152,8 @@ if uploaded:
     st.subheader("Nombre d'heures supérieur et inférieur aux seuils")
     st.dataframe(df_stats, hide_index=True)
 
-    # -------- Graphes en barres pour les plages de température (1°C) --------
+    # -------- Histogrammes par plage de température --------
     st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel}")
-
-    # Bins fixes
-    bins = np.arange(-5, 46, 1)          # -5 à 45
-    bin_centers = (bins[:-1] + bins[1:]) / 2   # valeurs numériques
-    bin_centers_int = bin_centers.astype(int)  # pour l’ordre
-    bin_labels = [str(int(x)) for x in bin_centers]  # labels affichés
-
-    # Bins fixes (-5 à 45°C)
     bins = np.arange(-5, 46, 1)
     bin_centers = (bins[:-1] + bins[1:]) / 2
     bin_centers_int = bin_centers.astype(int)
@@ -190,79 +163,55 @@ if uploaded:
         counts, _ = np.histogram(temp_hourly, bins=bins)
         return counts
 
-    for mois in range(1, 13):
-
-    # ---- Observations : comptage en heures ----
-        obs_hourly = obs_mois_all[mois-1]
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+        obs_hourly = obs_mois_all[mois_num-1]
         obs_counts = count_hours_in_bins(obs_hourly, bins)
-
-    # ---- Modèle ----
-        idx0 = sum(heures_par_mois[:mois-1])
-        idx1 = sum(heures_par_mois[:mois])
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
         mod_hourly = model_values[idx0:idx1]
         mod_counts = count_hours_in_bins(mod_hourly, bins)
-
-    # ---- DataFrame trié ----
         df_plot = pd.DataFrame({
-            "Temp_Num": bin_centers_int,     # pour l'ordre
+            "Temp_Num": bin_centers_int,
             "Température": bin_labels,
             "TRACC": obs_counts,
             "Modèle": mod_counts
         }).sort_values("Temp_Num")
-        
         fig, ax = plt.subplots(figsize=(14, 4))
-
-        ax.bar(
-            df_plot["Temp_Num"] - 0.2, df_plot["TRACC"],
-            width=0.4, label=f"TRACC +{scenario_sel}/{ville_sel}", color="blue"
-        )
-        ax.bar(
-            df_plot["Temp_Num"] + 0.2, df_plot["Modèle"],
-            width=0.4, label="Modèle", color="red"
-        )
-
-        ax.set_title(f"Mois {mois} - Durée en heure par seuil de température dans le mois")
+        ax.bar(df_plot["Temp_Num"] - 0.2, df_plot["TRACC"], width=0.4, label=f"TRACC +{scenario_sel}/{ville_sel}", color="blue")
+        ax.bar(df_plot["Temp_Num"] + 0.2, df_plot["Modèle"], width=0.4, label="Modèle", color="red")
+        ax.set_title(f"{mois} - Durée en heure par seuil de température")
         ax.set_xlabel("Température (°C)")
         ax.set_ylabel("Durée en heure")
         ax.legend()
-
         st.pyplot(fig)
         plt.close(fig)
 
-    # ---- Calcul et affichage ----
+    # -------- Précision par créneau horaire --------
     results_temp = []
-
     def rmse_hours(obs_counts, mod_counts):
         min_len = min(len(obs_counts), len(mod_counts))
         return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
 
-    for mois in range(1, 13):
-        obs_hourly = obs_mois_all[mois-1]
-        idx0 = sum(heures_par_mois[:mois-1])
-        idx1 = sum(heures_par_mois[:mois])
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+        obs_hourly = obs_mois_all[mois_num-1]
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
         mod_hourly = model_values[idx0:idx1]
-
-        # Comptage des heures par créneau
         obs_counts = count_hours_in_bins(obs_hourly, bins)
         mod_counts = count_hours_in_bins(mod_hourly, bins)
-
-        # RMSE et sigma sur les counts
-        # ---- Précision simple sur heures par créneau ----
         total_hours = sum(obs_counts)
         hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
         pct_precision = round(100 * (1 - hours_error / total_hours), 2)
-
         val_rmse = rmse_hours(obs_counts, mod_counts)
-        
         results_temp.append({
             "Mois": mois,
             "RMSE heures": round(val_rmse,2),
             "Précision (%)": pct_precision
         })
 
-
     df_temp_precision = pd.DataFrame(results_temp)
-
     df_temp_precision_styled = df_temp_precision.style \
         .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
         .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
@@ -274,41 +223,25 @@ if uploaded:
     st.subheader("Fonctions de répartition mensuelles (CDF)")
     df_percentiles_all = []
 
-
-    for mois in range(1, 13):
-        obs_mois = obs_mois_all[mois-1]
-        mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-    
-    # Calcul des percentiles pour CDF
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+        obs_mois = obs_mois_all[mois_num-1]
+        mod_mois = model_values[sum(heures_par_mois[:mois_num-1]):sum(heures_par_mois[:mois_num])]
         obs_percentiles_100 = np.percentile(obs_mois, np.linspace(0, 100, 100))
         mod_percentiles_100 = np.percentile(mod_mois, np.linspace(0, 100, 100))
-    
-    # Graphique CDF
+
         fig, ax = plt.subplots(figsize=(12, 4))
-        ax.plot(
-            np.linspace(0, 100, 100),
-            mod_percentiles_100,
-            label="Modèle",
-            color="red"
-        )
-        ax.plot(
-            np.linspace(0, 100, 100),
-            obs_percentiles_100,
-            label=f"TRACC +{scenario_sel}/{ville_sel}",
-            color="blue"  
-        )
-    
-        ax.set_title(f"Mois {mois} - Fonction de répartition", color="white")
+        ax.plot(np.linspace(0, 100, 100), mod_percentiles_100, label="Modèle", color="red")
+        ax.plot(np.linspace(0, 100, 100), obs_percentiles_100, label=f"TRACC +{scenario_sel}/{ville_sel}", color="blue")
+        ax.set_title(f"{mois} - Fonction de répartition", color="white")
         ax.set_xlabel("Percentile", color="white")
         ax.set_ylabel("Température (°C)", color="white")
         ax.tick_params(colors="white")
         ax.legend(facecolor="black")
-        ax.set_facecolor("none")  # transparent
-    
+        ax.set_facecolor("none")
         st.pyplot(fig)
         plt.close(fig)
-    
-        # Percentiles clés
+
         obs_p = np.percentile(obs_mois, percentiles_list)
         mod_p = np.percentile(mod_mois, percentiles_list)
         df_p = pd.DataFrame({
@@ -316,8 +249,7 @@ if uploaded:
             f"TRACC +{scenario_sel}/{ville_sel}": obs_p,
             "Modèle": mod_p
         }).round(2)
-
-        st.write(f"Mois {mois} - Percentiles")
+        st.write(f"{mois} - Percentiles")
         st.dataframe(df_p, hide_index=True)
 
         for i, p in enumerate(percentiles_list):
@@ -328,108 +260,8 @@ if uploaded:
                 "Mod": mod_p[i]
             })
 
-        # -------- Tableau bilan chaud/froid --------
-        st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
-        df_bilan = pd.DataFrame(df_percentiles_all).round(2)
-        df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
-        df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
-
-
-
-    def color_map(val):
-        if pd.isna(val): return ""
-        if val < 0: return f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})"
-        else: return f"background-color: rgba(255,0,0,{min(val/5,1)})"
-
-    st.dataframe(df_bilan_pivot.style.applymap(color_map).format("{:.2f}"))
-
-    # -------- Section multi-scénarios pour la ville --------
-    st.subheader(f"Comparaison multi-scénarios pour {ville_sel}")
-    df_percentiles_scenarios = []
-
-    for scenario in scenarios:
-        nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
-        ds = xr.open_dataset(nc_file, decode_times=True)
-        temps = ds["T2m"].to_series().values
-        start_idx = 0
-        for mois, nb_heures in enumerate(heures_par_mois, start=1):
-            obs_mois = temps[start_idx:start_idx + nb_heures]
-            obs_p = np.percentile(obs_mois, percentiles_list)
-            for i, p in enumerate(percentiles_list):
-                df_percentiles_scenarios.append({
-                    "Scénario": scenario,
-                    "Mois": mois,
-                    "Percentile": f"P{p}",
-                    "Valeur": round(obs_p[i],2)
-                })
-            start_idx += nb_heures
-
-    df_scenarios = pd.DataFrame(df_percentiles_scenarios)
-
-    # -------- Graphique CDF comparatif par scénario avec matplotlib --------
-    st.subheader("CDF comparatif des 6 scénarios")
-
-    # Définir les paires de scénarios et leurs couleurs
-    scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
-    colors = ["green", "orange", "indigo"]  # couleur par paire
-
-    for mois in range(1, 13):
-        fig, ax = plt.subplots(figsize=(12, 4))
-        for i, (sc1, sc2) in enumerate(scenario_pairs):
-            color = colors[i]
-
-        # Premier scénario : trait plein
-            nc_file = os.path.join(base_folder, sc1, f"{ville_sel}.nc")
-            ds = xr.open_dataset(nc_file, decode_times=True)
-            temps = ds["T2m"].to_series().values
-            obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
-            ax.plot(
-                np.linspace(0, 100, 100),
-                cdf_values,
-                label=f"{sc1}",
-                color=color,
-                linestyle="-"
-            )
-
-            # Deuxième scénario : trait pointillé
-            nc_file = os.path.join(base_folder, sc2, f"{ville_sel}.nc")
-            ds = xr.open_dataset(nc_file, decode_times=True)
-            temps = ds["T2m"].to_series().values
-            obs_mois = temps[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-            cdf_values = np.percentile(obs_mois, np.linspace(0, 100, 100))
-            ax.plot(
-                np.linspace(0, 100, 100),
-                cdf_values,
-                label=f"{sc2}",
-                color=color,
-                linestyle="--"
-            )
-
-        ax.set_title(f"Mois {mois} - CDF comparatif par scénario", color="white")
-        ax.set_xlabel("Percentile", color="white")
-        ax.set_ylabel("Température (°C)", color="white")
-        ax.tick_params(colors="white")
-        ax.legend(facecolor="black")
-        ax.set_facecolor("none")  # transparent
-
-        st.pyplot(fig)
-        plt.close(fig)
-
-    # Heatmap des écarts des percentiles par mois et scénario
-    st.subheader(f"Ecarts des percentiles (Modèle - TRACC +{scenario_sel}/{ville_sel})")
-    ref_model = {}
-    for mois in range(1, 13):
-        obs_mois = obs_mois_all[mois-1]
-        mod_mois = model_values[sum(heures_par_mois[:mois-1]):sum(heures_par_mois[:mois])]
-        for i, p in enumerate(percentiles_list):
-            ref_model[(mois, f"P{p}")] = np.percentile(mod_mois, p)
-
-    for p in percentiles_list:
-        df_ecart = df_scenarios[df_scenarios["Percentile"] == f"P{p}"].copy()
-        df_ecart["Ecart"] = -df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
-         # Conversion en float arrondi à 2 décimales
-        df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
-        df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
-        st.write(f"Percentile {p} / Modèle - TRACC +{scenario_sel}/{ville_sel} ")
-        st.dataframe(df_pivot.style.background_gradient(cmap="cool").format("{:.2f}"))
+    st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)")
+    df_bilan = pd.DataFrame(df_percentiles_all).round(2)
+    df_bilan["Ecart"] = df_bilan["Mod"] - df_bilan["Obs"]
+    df_bilan_pivot = df_bilan.pivot(index="Percentile", columns="Mois", values="Ecart").round(2)
+    st.dataframe(df_bilan_pivot.style.applymap(lambda val: f"background-color: rgba(255,0,0,{min(val/5,1)})" if val > 0 else f"background-color: rgba(0,0,255,{min(abs(val)/5,1)})").format("{:.2f}"))
