@@ -51,45 +51,64 @@ if uploaded:
     df_obs["month"] = df_obs["time"].dt.month
     df_obs["day"] = df_obs["time"].dt.day
 
-   # -------- RMSE et précision sur percentiles --------
+       # -------- RMSE --------
     def rmse(a, b):
         min_len = min(len(a), len(b))
         a_sorted = np.sort(a[:min_len])
         b_sorted = np.sort(b[:min_len])
         return np.sqrt(np.nanmean((a_sorted - b_sorted) ** 2))
+    
+    
+    # -------- Précision basée sur les écarts de percentiles --------
+    def precision_ecarts_percentiles(a, b):
+        """
+        Compare les distributions en prenant la somme des écarts absolus
+        sur les percentiles 1 à 99.
+        Renvoie une précision (%) entre 0 et 100.
+        """
+    
+        if len(a) == 0 or len(b) == 0:
+            return np.nan
+    
+        percentiles = np.arange(1, 100)
+        pa = np.percentile(a, percentiles)
+        pb = np.percentile(b, percentiles)
+    
+        # somme des écarts
+        sum_abs_diff = np.sum(np.abs(pa - pb))
+    
+        # normalisation :
+        # on divise par l'écart total des obs (max - min) pour obtenir un score cohérent
+        scale = np.max(pb) - np.min(pb)
+        if scale == 0:
+            return 100.0
+    
+        score = 100 * (1 - (sum_abs_diff / (scale * len(percentiles))))
+    
+        # bornage 0–100 %
+        score = max(0, min(100, score))
+        return round(score, 2)
 
-    def precision_normale(rmse_val, sigma_obs):
-        if sigma_obs == 0:
-            return 100.0  # pas de variabilité, modèle parfait
-        z = rmse_val / sigma_obs
-        prob = norm.cdf(z)  # probabilité que X <= z*sigma
-        precision = 2 * 100 * (1 - prob)
-        return round(precision, 2)
-
+    
     # -------- Boucle sur les mois --------
     results_rmse = []
-    obs_mois_all = []
     start_idx_model = 0
 
     for mois, nb_heures in enumerate(heures_par_mois, start=1):
+
         mod_mois = model_values[start_idx_model:start_idx_model + nb_heures]
         obs_mois_vals = df_obs[df_obs["month"] == mois]["T2m"].values
-        obs_mois_all.append(obs_mois_vals)
 
-    # RMSE sur les distributions
+        # RMSE (inchangé)
         val_rmse = rmse(mod_mois, obs_mois_vals)
 
-    # écart-type des observations
-        sigma_obs = np.std(obs_mois_vals, ddof=1)
-
-    # précision selon loi normale
-        pct_precision = precision_normale(val_rmse, sigma_obs)
+        # Précision basée sur les écarts des percentiles
+        pct_precision = precision_ecarts_percentiles(mod_mois, obs_mois_vals)
 
         results_rmse.append({
             "Mois": mois,
             "RMSE (°C)": round(val_rmse, 2),
-            "Sigma_obs (°C)": round(sigma_obs, 2),
-            "Précision (%)": pct_precision
+            "Précision percentile (%)": pct_precision
         })
 
         start_idx_model += nb_heures
@@ -97,13 +116,15 @@ if uploaded:
     # -------- DataFrame final --------
     df_rmse = pd.DataFrame(results_rmse)
 
-    # Dégradé de couleur rouge->orange->jaune->vert selon la précision
-    df_rmse_styled = df_rmse.style \
-    .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", axis=None) \
-    .format({"Précision (%)": "{:.2f}", "RMSE (°C)": "{:.2f}", "Sigma_obs (°C)": "{:.2f}"})
+    df_rmse_styled = (
+        df_rmse.style
+        .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", axis=None)
+        .format({"Précision percentile (%)": "{:.2f}", "RMSE (°C)": "{:.2f}"})
+    )
 
-    st.subheader("Précision du modèle : RMSE mensuels et précision (%)")
+    st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
     st.dataframe(df_rmse_styled, hide_index=True)
+
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
