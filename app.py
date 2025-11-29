@@ -96,8 +96,16 @@ if uploaded:
 
     # -------- DataFrame final --------
     df_rmse = pd.DataFrame(results_rmse)
-    st.subheader("Précision du modèle : RMSE mensuels et précision selon loi normale (%)")
-    st.dataframe(df_rmse, hide_index=True)
+
+    # Dégradé de couleur rouge->orange->jaune->vert selon la précision
+    df_rmse_styled = df_rmse.style.background_gradient(
+        subset=["Précision (%)"],
+        cmap="RdYlGn",  # Rouge → Jaune → Vert
+        axis=None
+    ).format("{:.2f}")  # Arrondir à 2 décimales
+
+    st.subheader("Précision du modèle : RMSE mensuels et précision (%)")
+    st.dataframe(df_rmse_styled, hide_index=True)
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
