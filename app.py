@@ -545,7 +545,7 @@ if uploaded:
         plt.close(fig)
 
     # -------- Heatmap des écarts des percentiles par mois et scénario --------
-    st.subheader(f"Ecarts des percentiles (Modèle - TRACC +{scenario_sel}/{ville_sel})")
+    st.subheader(f"Ecarts des percentiles (Modèle - Scénarios TRACC)")
     
     # Création du dictionnaire de référence Modèle
     ref_model = {}
@@ -561,6 +561,6 @@ if uploaded:
         df_ecart["Ecart"] = -df_ecart.apply(lambda row: row["Valeur"] - ref_model[(row["Mois"], f"P{p}")], axis=1)
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
-        st.write(f"Percentile {p} / Modèle - TRACC +{scenario_sel}/{ville_sel}")
+        st.write(f"Percentile {p} : Modèle - TRACC/{ville_sel}")
         st.dataframe(df_pivot.style.background_gradient(cmap="jet", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
 
