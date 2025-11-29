@@ -256,7 +256,7 @@ if uploaded:
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
     st.dataframe(df_temp_precision_styled, hide_index=True)
 
-        # ============================
+    # ============================
     #   COURBES Tn / Tmoy / Tx
     # ============================
     st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
@@ -378,7 +378,7 @@ if uploaded:
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
     df_percentiles_all = []
-
+    
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
         obs_mois = obs_mois_all[mois_num-1]
@@ -464,11 +464,25 @@ if uploaded:
     st.subheader("CDF comparatif des 6 scénarios")
     
     scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
-    colors = ["green", "orange", "indigo"]  # couleur par paire
+    colors = ["green", "orange", "magenta"]  # couleur par paire
     
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
         fig, ax = plt.subplots(figsize=(12, 4))
+        # -------------------------------
+        # 1) Courbe OBS de référence (blanc)
+        # -------------------------------
+        obs_mois = obs_mois_all[mois_num - 1]
+        obs_percentiles = np.percentile(obs_mois, np.linspace(0, 100, 100))
+    
+        ax.plot(
+            np.linspace(0, 100, 100),
+            obs_percentiles,
+            color="white",
+            linewidth=2.5,
+            linestyle="-",
+            label="OBS"
+        )
         for i, (sc1, sc2) in enumerate(scenario_pairs):
             color = colors[i]
     
