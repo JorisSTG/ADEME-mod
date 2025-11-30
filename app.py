@@ -141,7 +141,7 @@ if uploaded:
     
     st.markdown(
         """
-        La précision est calculée selon la différence moyenne entre les percentiles (RMSE) et l'écart-type du mois de référene (données TRACC)
+        La précision est calculée selon la moyenne des différences absolues entre les percentiles du modèle et de la TRACC (=RMSE) et l'écart-type du mois de référene (données TRACC)
         """,
         unsafe_allow_html=True
     )
@@ -218,7 +218,13 @@ if uploaded:
 
 
     # -------- Histogrammes par plage de température --------
-    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}°C/{ville_sel} [X°C,X+1°C[")
+    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel}")
+    st.markdown(
+        """
+        La valeur de chaque barre est égal au total d'heure compris entre [ X°C , X+1°C [
+        """,
+        unsafe_allow_html=True
+    )
     # Bins correspondant à [X, X+1[ pour chaque température entière
     bin_edges = bins = np.arange(-5, 46, 1)  # bornes des bins
     bin_labels = bin_edges[:-1].astype(int)  # labels = début de l'intervalle
