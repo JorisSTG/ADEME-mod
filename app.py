@@ -141,7 +141,7 @@ if uploaded:
     
     st.markdown(
         """
-        La précision est calculée selon la moyenne des différences absolues entre les percentiles du modèle et de la TRACC (=RMSE) et l'écart-type du mois de référene (données TRACC)
+        La précision est calculée à partir de la moyenne des différences absolues entre les percentiles du modèle et ceux de la TRACC (c’est-à-dire le RMSE), ainsi que de l’écart-type du mois de référence issu des données TRACC.
         """,
         unsafe_allow_html=True
     )
@@ -293,9 +293,16 @@ if uploaded:
     df_temp_precision = pd.DataFrame(results_temp)
     df_temp_precision_styled = df_temp_precision.style \
         .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", vmin=vminP, vmax=vmaxP, axis=None) \
-        .format({"Précision (%)": "{:.2f}", "RMSE heures": "{:.2f}"})
+        .format({"Précision (%)": "{:.2f}", "RMSE (heure)": "{:.2f}"})
 
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
+      st.markdown(
+        """
+        Le RMSE correspond à la moyenne de l’écart absolu entre les valeurs du modèle et celles de la TRACC pour chaque intervalle de température.
+        La précision est calculée à partir de la différence totale d’heures dans chaque intervalle 
+        """,
+        unsafe_allow_html=True
+    )
     st.dataframe(df_temp_precision_styled, hide_index=True)
 
     # ============================
@@ -304,9 +311,9 @@ if uploaded:
     st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
     st.markdown(
         """  
-        - Les valeurs tracés représente le Tn et Tx absolue du mois (soit P0 et P100) 
-        - La Tmoy est une moyenne globale du mois à tous les pas de temps
-        - En outre, les températures du mois ne dépassent jamais les bornes Tn et Tx
+        - Les valeurs tracées représentent les températures minimales et maximales **absolues** du mois (c’est-à-dire P0 et P100)
+        - De ce fait, les températures du mois ne dépassent jamais les bornes définies par Tn et Tx.
+        - La température moyenne (Tmoy) correspond à la moyenne mensuelle calculée sur l’ensemble des pas de temps
         """,
         unsafe_allow_html=True
     )
