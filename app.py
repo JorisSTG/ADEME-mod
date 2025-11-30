@@ -281,7 +281,13 @@ if uploaded:
     #   COURBES Tn / Tmoy / Tx
     # ============================
     st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
-    
+    st.markdown(
+        """  
+        - Les valeurs tracés représente le Tn et Tx absolue du mois X ainsi que la Tmoy globale du mois
+        - En outre, les températures du mois X n'ont jamais dépassé les bornes Tn et Tx
+        """,
+        unsafe_allow_html=True
+    )
     # Calcul des Tn/Tmoy/Tx pour 12 mois
     results_tstats = []
     for mois_num in range(1, 12+1):
