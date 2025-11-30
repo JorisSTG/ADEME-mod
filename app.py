@@ -285,7 +285,7 @@ if uploaded:
         """  
         - Les valeurs tracés représente le Tn et Tx absolue du mois (soit P0 et P100) 
         - La Tmoy est une moyenne globale du mois à tous les pas de temps
-        - En outre, les températures du mois n'ont jamais dépassées les bornes Tn et Tx
+        - En outre, les températures du mois ne dépassent jamais les bornes Tn et Tx
         """,
         unsafe_allow_html=True
     )
