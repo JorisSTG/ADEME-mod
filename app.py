@@ -370,7 +370,7 @@ if uploaded:
     df_diff = pd.DataFrame({
         "Mois": df_tstats["Mois"],
         "Diff_Tn_mois": df_tstats["Modèle_Tn"] - df_tstats["TRACC_Tn"],
-        "Diff_Tm_mois": df_tstats["Modèle_Tm"] - df_tstats["TRACC_Tm"],
+        "Diff_Tmoy_mois": df_tstats["Modèle_Tm"] - df_tstats["TRACC_Tm"],
         "Diff_Tx_mois": df_tstats["Modèle_Tx"] - df_tstats["TRACC_Tx"],
     })
     
