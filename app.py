@@ -429,7 +429,21 @@ if uploaded:
         })
     
         st.write(f"{mois} — Table des percentiles journaliers (Tn / Tmoy / Tx)")
-        st.dataframe(tab.style.format("{:.2f}"), hide_index=True)
+        # Assurer que tab est un DataFrame
+        tab = pd.DataFrame(tab)
+        
+        # Séparer les colonnes numériques
+        num_cols = tab.select_dtypes(include=[np.number]).columns
+        
+        # Forcer la conversion numérique si possible
+        tab[num_cols] = tab[num_cols].apply(pd.to_numeric, errors="coerce")
+        
+        # Appliquer le format uniquement aux colonnes numériques
+        styler = tab.style.format({col: "{:.2f}" for col in num_cols})
+        
+        # Affichage Streamlit
+        st.dataframe(styler, hide_index=True)
+
 
 
     # ======================================
