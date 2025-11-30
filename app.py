@@ -141,7 +141,7 @@ if uploaded:
     
     st.markdown(
         """
-        La précision est calculé selon la différence moyenne entre les percentiles (RMSE) et l'écart-type du mois de la TRACC
+        La précision est calculée selon la différence moyenne entre les percentiles (RMSE) et l'écart-type du mois de référene (données TRACC)
         """,
         unsafe_allow_html=True
     )
@@ -204,7 +204,7 @@ if uploaded:
         df_sup.style
         .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="bwr", vmin=vminH, vmax=vmaxH, axis=None)
     )
-    st.subheader("Nombre d'heures supérieur aux seuils")
+    st.subheader("Nombre d'heures supérieur au(x) seuil(s)")
     st.dataframe(df_sup_styled, hide_index=True)
     
     # Style : seuils inférieurs → rouge = plus froid
@@ -213,12 +213,12 @@ if uploaded:
         df_inf.style
         .background_gradient(subset=["Ecart (Modèle - TRACC)"], cmap="bwr_r", vmin=vminH, vmax=vmaxH, axis=None)
     )
-    st.subheader("Nombre d'heures inférieur aux seuils")
+    st.subheader("Nombre d'heures inférieur au(x) seuil(s)")
     st.dataframe(df_inf_styled, hide_index=True)
 
 
     # -------- Histogrammes par plage de température --------
-    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}/{ville_sel} [X°C,X+1°C[")
+    st.subheader(f"Histogrammes horaire : Modèle et TRACC +{scenario_sel}°C/{ville_sel} [X°C,X+1°C[")
     # Bins correspondant à [X, X+1[ pour chaque température entière
     bin_edges = bins = np.arange(-5, 46, 1)  # bornes des bins
     bin_labels = bin_edges[:-1].astype(int)  # labels = début de l'intervalle
