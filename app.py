@@ -103,7 +103,7 @@ if uploaded:
         if scale == 0:
             return 100.0  # pas de variation dans b, a=b ou pas → score max
     
-        score = 100 * (1 - diff_moyenne / scale)
+        score = 100 * (1 - diff_moyenne / (3*scale))
         score = max(0, min(100, score))  # on contraint entre 0 et 100
     
         return round(score, 2)
