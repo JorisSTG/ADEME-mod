@@ -369,13 +369,13 @@ if uploaded:
     # ---- Tableau des différences (Modèle - TRACC) ----
     df_diff = pd.DataFrame({
         "Mois": df_tstats["Mois"],
-        "Diff_Tn": df_tstats["Modèle_Tn"] - df_tstats["TRACC_Tn"],
-        "Diff_Tm": df_tstats["Modèle_Tm"] - df_tstats["TRACC_Tm"],
-        "Diff_Tx": df_tstats["Modèle_Tx"] - df_tstats["TRACC_Tx"],
+        "Diff_Tn_mois": df_tstats["Modèle_Tn"] - df_tstats["TRACC_Tn"],
+        "Diff_Tm_mois": df_tstats["Modèle_Tm"] - df_tstats["TRACC_Tm"],
+        "Diff_Tx_mois": df_tstats["Modèle_Tx"] - df_tstats["TRACC_Tx"],
     })
     
     df_diff_round = df_diff.copy()
-    df_diff_round[["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]] = df_diff_round[["Diff_Tn","Diff_Tm","Diff_Tx"]].round(2)
+    df_diff_round[["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]] = df_diff_round[["Diff_Tn_mois","Diff_Tm_mois","Diff_Tx_mois"]].round(2)
     
     st.write("Différences Modèle - TRACC (Tn_mois / Tmoy_mois / Tx_mois)")
         
@@ -383,7 +383,7 @@ if uploaded:
     st.dataframe(
         df_diff_round.style
             .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT)
-            .format("{:.2f}", subset=["Diff_Tn","Diff_Tm","Diff_Tx"]),
+            .format("{:.2f}", subset=["Diff_Tn_mois","Diff_Tm_mois","Diff_Tx_mois"]),
         hide_index=True,
         use_container_width=True
     )
@@ -501,16 +501,16 @@ if uploaded:
         # ---- Tableau des différences (Modèle - TRACC) ----
         df_diff = pd.DataFrame({
             "Percentile": tab["Percentile"],
-            "Diff_Tn": tab["Mod_Tn"] - tab["TRACC_Tn"],
-            "Diff_Tm": tab["Mod_Tm"] - tab["TRACC_Tm"],
-            "Diff_Tx": tab["Mod_Tx"] - tab["TRACC_Tx"],
+            "Diff_Tn_jour": tab["Mod_Tn"] - tab["TRACC_Tn"],
+            "Diff_Tm_jour": tab["Mod_Tm"] - tab["TRACC_Tm"],
+            "Diff_Tx_jour": tab["Mod_Tx"] - tab["TRACC_Tx"],
         })
         
         # Convertir en float + arrondir
-        num_cols_diff = ["Diff_Tn", "Diff_Tm", "Diff_Tx"]
+        num_cols_diff = ["Diff_Tn_jour", "Diff_Tm_jour", "Diff_Tx_jour"]
         df_diff[num_cols_diff] = df_diff[num_cols_diff].apply(pd.to_numeric, errors="coerce").round(2)
         
-        st.write(f"{mois} — Différences Modèle - TRACC (Tn / Tmoy / Tx)")
+        st.write(f"{mois} — Différences Modèle - TRACC (Tn_jour / Tmoy_jour / Tx_jour)")
         
         df_diff_styled = (
             df_diff.style
@@ -524,7 +524,6 @@ if uploaded:
         )
         
         st.dataframe(df_diff_styled, hide_index=True)
-
 
 
     # ======================================
