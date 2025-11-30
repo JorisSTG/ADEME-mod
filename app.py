@@ -88,7 +88,7 @@ if uploaded:
     # -------- Précision basée sur les écarts de percentiles --------
     def precision_ecarts_percentiles(a, b):
         if len(a) == 0 or len(b) == 0:
-        return np.nan
+            return np.nan
         # Percentiles 1 à 99
         percentiles = np.arange(1, 100)
         pa = np.percentile(a, percentiles)
