@@ -308,7 +308,7 @@ if uploaded:
     # ============================
     #   COURBES Tn / Tmoy / Tx
     # ============================
-    st.subheader("Évolution mensuelle : Tn_mois / Tmoy / Tx_mois (Modèle vs TRACC)")
+    st.subheader("Évolution mensuelle : Tn_mois / Tmoy_mois / Tx_mois (Modèle vs TRACC)")
     st.markdown(
         """  
         - Les valeurs tracées représentent les températures minimales et maximales **absolues** du mois (c’est-à-dire P0 et P100)
@@ -363,7 +363,7 @@ if uploaded:
     plt.close(fig)
     
     # ---- Tableau correspondant ----
-    st.write("Tableau Tn / Tmoy / Tx")
+    st.write("Tableau Tn_mois / Tmoy_mois / Tx_mois")
     st.dataframe(df_tstats.round(2), hide_index=True)
 
     # ---- Tableau des différences (Modèle - TRACC) ----
@@ -375,9 +375,9 @@ if uploaded:
     })
     
     df_diff_round = df_diff.copy()
-    df_diff_round[["Diff_Tn","Diff_Tm","Diff_Tx"]] = df_diff_round[["Diff_Tn","Diff_Tm","Diff_Tx"]].round(2)
+    df_diff_round[["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]] = df_diff_round[["Diff_Tn","Diff_Tm","Diff_Tx"]].round(2)
     
-    st.subheader("Différences Modèle - TRACC (Tn / Tmoy / Tx)")
+    st.write("Différences Modèle - TRACC (Tn_mois / Tmoy_mois / Tx_mois)")
         
     # ---- Coloration avec background_gradient ----
     st.dataframe(
@@ -392,7 +392,7 @@ if uploaded:
     # ============================
     #  SECTION: Tn / Tmoy / Tx journaliers
     # ============================
-    st.subheader("Tn / Tmoy / Tx journaliers — CDF par mois et tableaux de percentiles")
+    st.subheader("Tn_jour / Tmoy_jour / Tx_jour — CDF par mois et tableaux de percentiles")
     
     def daily_stats_from_hourly(hourly):
         """
@@ -497,6 +497,34 @@ if uploaded:
         styler = tab.style.format({col: "{:.2f}" for col in num_cols})
     
         st.dataframe(styler, hide_index=True)
+
+        # ---- Tableau des différences (Modèle - TRACC) ----
+        df_diff = pd.DataFrame({
+            "Percentile": tab["Percentile"],
+            "Diff_Tn": tab["Mod_Tn"] - tab["TRACC_Tn"],
+            "Diff_Tm": tab["Mod_Tm"] - tab["TRACC_Tm"],
+            "Diff_Tx": tab["Mod_Tx"] - tab["TRACC_Tx"],
+        })
+        
+        # Convertir en float + arrondir
+        num_cols_diff = ["Diff_Tn", "Diff_Tm", "Diff_Tx"]
+        df_diff[num_cols_diff] = df_diff[num_cols_diff].apply(pd.to_numeric, errors="coerce").round(2)
+        
+        st.write(f"{mois} — Différences Modèle - TRACC (Tn / Tmoy / Tx)")
+        
+        df_diff_styled = (
+            df_diff.style
+                .background_gradient(
+                    cmap="bwr",
+                    vmin=vminT,
+                    vmax=vmaxT,
+                    subset=num_cols_diff
+                )
+                .format({col: "{:.2f}" for col in num_cols_diff})
+        )
+        
+        st.dataframe(df_diff_styled, hide_index=True)
+
 
 
     # ======================================
