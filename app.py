@@ -383,10 +383,11 @@ if uploaded:
     st.dataframe(
         df_diff_round.style
             .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT)
-            .format("{:.2f}"),
+            .format("{:.2f}", subset=["Diff_Tn","Diff_Tm","Diff_Tx"]),
         hide_index=True,
         use_container_width=True
     )
+
 
     # ============================
     #  SECTION: Tn / Tmoy / Tx journaliers
