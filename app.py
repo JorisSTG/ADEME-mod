@@ -88,16 +88,22 @@ if uploaded:
     # -------- Précision basée sur les écarts de percentiles --------
     def precision_ecarts_percentiles(a, b):
         if len(a) == 0 or len(b) == 0:
-            return np.nan
+        return np.nan
+        # Percentiles 1 à 99
         percentiles = np.arange(1, 100)
         pa = np.percentile(a, percentiles)
         pb = np.percentile(b, percentiles)
-        sum_abs_diff = np.sum(np.abs(pa - pb))
-        scale = np.max(pb) - np.min(pb)
+    
+        # Différence moyenne normalisée par l'écart-type
+        diff_moyenne = np.mean(np.abs(pa - pb))
+        scale = np.std(pb)
+        
         if scale == 0:
-            return 100.0
-        score = 100 * (1 - (sum_abs_diff / (scale * len(percentiles))))
-        score = max(0, min(100, score))
+            return 100.0  # pas de variation dans b, a=b ou pas → score max
+    
+        score = 100 * (1 - diff_moyenne / scale)
+        score = max(0, min(100, score))  # on contraint entre 0 et 100
+    
         return round(score, 2)
 
     # -------- Boucle sur les mois --------
@@ -130,6 +136,13 @@ if uploaded:
         .format({"Précision percentile (%)": "{:.2f}", "RMSE (°C)": "{:.2f}"})
     )
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
+    
+    st.markdown(
+        """
+        - 
+        """,
+        unsafe_allow_html=True
+    )
     st.dataframe(df_rmse_styled, hide_index=True)
 
     # -------- Seuils --------
