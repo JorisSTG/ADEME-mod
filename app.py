@@ -308,12 +308,12 @@ if uploaded:
     # ============================
     #   COURBES Tn / Tmoy / Tx
     # ============================
-    st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
+    st.subheader("Évolution mensuelle : Tn_mois / Tmoy / Tx_mois (Modèle vs TRACC)")
     st.markdown(
         """  
         - Les valeurs tracées représentent les températures minimales et maximales **absolues** du mois (c’est-à-dire P0 et P100)
-        - De ce fait, les températures du mois ne dépassent jamais les bornes définies par Tn et Tx.
-        - La température moyenne (Tmoy) correspond à la moyenne mensuelle calculée sur l’ensemble des pas de temps
+        - De ce fait, les températures du mois ne dépassent jamais les bornes définies par Tn_mois et Tx_mois.
+        - La température moyenne (Tmoy_mois) correspond à la moyenne mensuelle calculée sur l’ensemble des pas de temps
         """,
         unsafe_allow_html=True
     )
@@ -354,7 +354,7 @@ if uploaded:
     ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tm"], color="white", label="TRACC Tmoy", linestyle="--")
     ax.plot(df_tstats["Mois"], df_tstats["TRACC_Tn"], color="cyan", label="TRACC Tn", linestyle="--")
 
-    ax.set_title(f"Tn / Tmoy / Tx – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
+    ax.set_title(f"Tn_mois / Tmoy_mois / Tx_mois – Modèle vs TRACC +{scenario_sel}/{ville_sel}")
     ax.set_ylabel("Température (°C)")
     ax.tick_params(axis='x', rotation=45)
     ax.legend(facecolor="black")
@@ -365,6 +365,28 @@ if uploaded:
     # ---- Tableau correspondant ----
     st.write("Tableau Tn / Tmoy / Tx")
     st.dataframe(df_tstats.round(2), hide_index=True)
+
+    # ---- Tableau des différences (Modèle - TRACC) ----
+    df_diff = pd.DataFrame({
+        "Mois": df_tstats["Mois"],
+        "Diff_Tn": df_tstats["Modèle_Tn"] - df_tstats["TRACC_Tn"],
+        "Diff_Tm": df_tstats["Modèle_Tm"] - df_tstats["TRACC_Tm"],
+        "Diff_Tx": df_tstats["Modèle_Tx"] - df_tstats["TRACC_Tx"],
+    })
+    
+    df_diff_round = df_diff.copy()
+    df_diff_round[["Diff_Tn","Diff_Tm","Diff_Tx"]] = df_diff_round[["Diff_Tn","Diff_Tm","Diff_Tx"]].round(2)
+    
+    st.subheader("Différences Modèle - TRACC (Tn / Tmoy / Tx)")
+        
+    # ---- Coloration avec background_gradient ----
+    st.dataframe(
+        df_diff_round.style
+            .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT)
+            .format("{:.2f}"),
+        hide_index=True,
+        use_container_width=True
+    )
 
     # ============================
     #  SECTION: Tn / Tmoy / Tx journaliers
@@ -594,7 +616,7 @@ if uploaded:
     # Affichage stylé avec couleurs selon l'écart
     st.dataframe(
         df_bilan_pivot.style
-        .background_gradient(cmap="jet", vmin=vminT, vmax=vmaxT)
+        .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT)
         .format("{:.2f}")
     )
     # -------- Section multi-scénarios pour la ville --------
@@ -720,5 +742,5 @@ if uploaded:
         df_ecart["Ecart"] = df_ecart["Ecart"].round(2).astype(float)
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
         st.write(f"Percentile {p} : Modèle - TRACC/{ville_sel}")
-        st.dataframe(df_pivot.style.background_gradient(cmap="jet", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
+        st.dataframe(df_pivot.style.background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
 
