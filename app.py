@@ -24,7 +24,7 @@ st.title("Comparaison : Modèle / TRACC")
 
 st.markdown(
     """
-    La caractérisation du modèle vis-à-vis des données issues de la TRACC sont uniquement basé sur la température !
+    La caractérisation du modèle vis-à-vis des données issues de la TRACC est basée uniquement sur la température de l'air !
     
     **Note sur les couleurs :**  
     - Les couleurs visent à caractériser le **MODÈLE** (données issues du fichier `.csv`).  
