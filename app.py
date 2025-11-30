@@ -286,7 +286,7 @@ if uploaded:
         val_rmse = rmse_hours(obs_counts, mod_counts)
         results_temp.append({
             "Mois": mois,
-            "RMSE heures": round(val_rmse,2),
+            "RMSE (heures)": round(val_rmse,2),
             "Précision (%)": pct_precision
         })
 
