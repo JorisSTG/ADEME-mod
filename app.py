@@ -296,7 +296,7 @@ if uploaded:
         .format({"Précision (%)": "{:.2f}", "RMSE (heure)": "{:.2f}"})
 
     st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
-      st.markdown(
+    st.markdown(
         """
         Le RMSE correspond à la moyenne de l’écart absolu entre les valeurs du modèle et celles de la TRACC pour chaque intervalle de température.
         La précision est calculée à partir de la différence totale d’heures dans chaque intervalle 
