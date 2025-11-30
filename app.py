@@ -408,7 +408,7 @@ if uploaded:
                 label="TRACC Tn", color=colors["Tn"])
         
         # Mise en forme
-        ax.set_title(f"{mois} — CDF Tn / Tmoy / Tx (Modèle vs TRACC)", color="white")
+        ax.set_title(f"{mois} — CDF Tn / Tmoy / Tx (Modèle vs TRACC +{scenario_sel}/{ville_sel})", color="white")
         ax.set_xlabel("Percentile", color="white")
         ax.set_ylabel("Température (°C)", color="white")
         ax.tick_params(colors="white")
@@ -418,16 +418,34 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
-
+        def pct_table_values(arr, pct_list):
+            return [np.percentile(arr, p) for p in pct_list]
+    
+        tab = pd.DataFrame({
+            "Percentile": [f"P{p}" for p in pct_table],
+            "TRACC_Tn": np.round(pct_table_values(obs_tn, pct_table), 2),
+            "Mod_Tn":   np.round(pct_table_values(mod_tn, pct_table), 2),
+            "TRACC_Tm": np.round(pct_table_values(obs_tm, pct_table), 2),
+            "Mod_Tm":   np.round(pct_table_values(mod_tm, pct_table), 2),
+            "TRACC_Tx": np.round(pct_table_values(obs_tx, pct_table), 2),
+            "Mod_Tx":   np.round(pct_table_values(mod_tx, pct_table), 2),
+        })
+    
+        st.write(f"{mois} — Table des percentiles journaliers (Tn / Tmoy / Tx)")
+    
+        tab = pd.DataFrame(tab)
+        num_cols = tab.select_dtypes(include=[np.number]).columns
+        tab[num_cols] = tab[num_cols].apply(pd.to_numeric, errors="coerce")
+        styler = tab.style.format({col: "{:.2f}" for col in num_cols})
+    
+        st.dataframe(styler, hide_index=True)
 
 
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
     # ======================================
     st.subheader("Évolution mensuelle des percentiles (Modèle vs TRACC)")
-    # ======================================
-    # PRÉPARATION PERCENTILES (Modèle + TRACC)
-    # ======================================
+
     df_percentiles_all = []
     percentiles_list2 = [10,50,90]
     
