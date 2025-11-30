@@ -381,68 +381,43 @@ if uploaded:
         obs_tx_cdf = np.percentile(obs_tx, pct_for_cdf)
         mod_tx_cdf = np.percentile(mod_tx, pct_for_cdf)
     
-        # ---- tracé : 3 sous-graphes côte à côte (Tn, Tm, Tx) ----
-        fig, axs = plt.subplots(1, 3, figsize=(18, 4), tight_layout=True)
+        # ---- tracé : un seul graphique regroupant Tn / Tmoy / Tx ----
+        fig, ax = plt.subplots(figsize=(12, 4))
+        
+        # Couleurs cohérentes pour chaque variable
+        colors = {
+            "Tn": "cyan",
+            "Tm": "white",
+            "Tx": "red"
+        }
+        
         # Tn
-        axs[0].plot(pct_for_cdf, mod_tn_cdf, linestyle="-", linewidth=2, label="Modèle (Tn)", color="red")
-        axs[0].plot(pct_for_cdf, obs_tn_cdf, linestyle="--", linewidth=1.5, label=f"TRACC (Tn) {scenario_sel}/{ville_sel}", color="blue")
-        axs[0].set_title(f"{mois} — Tn (CDF)", color="white")
-        axs[0].set_xlabel("Percentile", color="white")
-        axs[0].set_ylabel("Température (°C)", color="white")
-        axs[0].tick_params(colors="white")
-        axs[0].legend(facecolor="black")
+        ax.plot(pct_for_cdf, mod_tx_cdf, linestyle="-", linewidth=2,
+                label="Modèle Tx", color=colors["Tx"])
+        ax.plot(pct_for_cdf, mod_tm_cdf, linestyle="-", linewidth=2,
+                label="Modèle Tmoy", color=colors["Tm"])
+        ax.plot(pct_for_cdf, mod_tn_cdf, linestyle="-", linewidth=2,
+                label="Modèle Tn", color=colors["Tn"])
+
     
-        # Tmoy
-        axs[1].plot(pct_for_cdf, mod_tm_cdf, linestyle="-", linewidth=2, label="Modèle (Tmoy)", color="red")
-        axs[1].plot(pct_for_cdf, obs_tm_cdf, linestyle="--", linewidth=1.5, label=f"TRACC (Tmoy) {scenario_sel}/{ville_sel}", color="blue")
-        axs[1].set_title(f"{mois} — Tmoy (CDF)", color="white")
-        axs[1].set_xlabel("Percentile", color="white")
-        axs[1].tick_params(colors="white")
-        axs[1].legend(facecolor="black")
-    
-        # Tx
-        axs[2].plot(pct_for_cdf, mod_tx_cdf, linestyle="-", linewidth=2, label="Modèle (Tx)", color="red")
-        axs[2].plot(pct_for_cdf, obs_tx_cdf, linestyle="--", linewidth=1.5, label=f"TRACC (Tx) {scenario_sel}/{ville_sel}", color="blue")
-        axs[2].set_title(f"{mois} — Tx (CDF)", color="white")
-        axs[2].set_xlabel("Percentile", color="white")
-        axs[2].tick_params(colors="white")
-        axs[2].legend(facecolor="black")
-    
-        for ax in axs:
-            ax.set_facecolor("none")  # transparent pour coller au thème
-    
+        ax.plot(pct_for_cdf, obs_tx_cdf, linestyle="--", linewidth=1.7,
+                label="TRACC Tx", color=colors["Tx"])
+        ax.plot(pct_for_cdf, obs_tm_cdf, linestyle="--", linewidth=1.7,
+                label="TRACC Tmoy", color=colors["Tm"])
+        ax.plot(pct_for_cdf, obs_tn_cdf, linestyle="--", linewidth=1.7,
+                label="TRACC Tn", color=colors["Tn"])
+        
+        # Mise en forme
+        ax.set_title(f"{mois} — CDF Tn / Tmoy / Tx (Modèle vs TRACC)", color="white")
+        ax.set_xlabel("Percentile", color="white")
+        ax.set_ylabel("Température (°C)", color="white")
+        ax.tick_params(colors="white")
+        ax.legend(facecolor="black")
+        ax.set_facecolor("none")
+        
         st.pyplot(fig)
         plt.close(fig)
-    
-        # ---- tableau des percentiles demandés pour les 3 stats ----
-        def pct_table_values(arr, pct_list):
-            return [np.percentile(arr, p) for p in pct_list]
-    
-        tab = pd.DataFrame({
-            "Percentile": [f"P{p}" for p in pct_table],
-            f"TRACC_Tn": np.round(pct_table_values(obs_tn, pct_table), 2),
-            f"Mod_Tn": np.round(pct_table_values(mod_tn, pct_table), 2),
-            f"TRACC_Tm": np.round(pct_table_values(obs_tm, pct_table), 2),
-            f"Mod_Tm": np.round(pct_table_values(mod_tm, pct_table), 2),
-            f"TRACC_Tx": np.round(pct_table_values(obs_tx, pct_table), 2),
-            f"Mod_Tx": np.round(pct_table_values(mod_tx, pct_table), 2),
-        })
-    
-        st.write(f"{mois} — Table des percentiles journaliers (Tn / Tmoy / Tx)")
-        # Assurer que tab est un DataFrame
-        tab = pd.DataFrame(tab)
-        
-        # Séparer les colonnes numériques
-        num_cols = tab.select_dtypes(include=[np.number]).columns
-        
-        # Forcer la conversion numérique si possible
-        tab[num_cols] = tab[num_cols].apply(pd.to_numeric, errors="coerce")
-        
-        # Appliquer le format uniquement aux colonnes numériques
-        styler = tab.style.format({col: "{:.2f}" for col in num_cols})
-        
-        # Affichage Streamlit
-        st.dataframe(styler, hide_index=True)
+
 
 
 
