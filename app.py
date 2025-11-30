@@ -283,8 +283,9 @@ if uploaded:
     st.subheader("Évolution mensuelle : Tn / Tmoy / Tx (Modèle vs TRACC)")
     st.markdown(
         """  
-        - Les valeurs tracés représente le Tn et Tx absolue du mois X ainsi que la Tmoy globale du mois
-        - En outre, les températures du mois X n'ont jamais dépassé les bornes Tn et Tx
+        - Les valeurs tracés représente le Tn et Tx absolue du mois (soit P0 et P100) 
+        - La Tmoy est une moyenne globale du mois à tous les pas de temps
+        - En outre, les températures du mois n'ont jamais dépassées les bornes Tn et Tx
         """,
         unsafe_allow_html=True
     )
