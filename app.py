@@ -375,7 +375,7 @@ if uploaded:
     })
     
     df_diff_round = df_diff.copy()
-    df_diff_round[["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]] = df_diff_round[["Diff_Tn_mois","Diff_Tm_mois","Diff_Tx_mois"]].round(2)
+    df_diff_round[["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]] = df_diff_round[["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]].round(2)
     
     st.write("Différences Modèle - TRACC (Tn_mois / Tmoy_mois / Tx_mois)")
         
@@ -466,7 +466,7 @@ if uploaded:
                 label="TRACC Tn", color=colors["Tn"])
         
         # Mise en forme
-        ax.set_title(f"{mois} — CDF Tn / Tmoy / Tx (Modèle vs TRACC +{scenario_sel}/{ville_sel})", color="white")
+        ax.set_title(f"{mois} — CDF Tn_jour / Tmoy_jour / Tx_jour (Modèle vs TRACC +{scenario_sel}/{ville_sel})", color="white")
         ax.set_xlabel("Percentile", color="white")
         ax.set_ylabel("Température (°C)", color="white")
         ax.tick_params(colors="white")
@@ -489,7 +489,7 @@ if uploaded:
             "Mod_Tx":   np.round(pct_table_values(mod_tx, pct_table), 2),
         })
     
-        st.write(f"{mois} — Table des percentiles journaliers (Tn / Tmoy / Tx)")
+        st.write(f"{mois} — Table des percentiles journaliers (Tn_jour / Tmoy_jour / Tx_jour)")
     
         tab = pd.DataFrame(tab)
         num_cols = tab.select_dtypes(include=[np.number]).columns
