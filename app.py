@@ -24,8 +24,9 @@ st.title("Comparaison : Modèle / TRACC")
 
 st.markdown(
     """
+    La caractérisation du modèle vis-à-vis des données issues de la TRACC sont uniquement basé sur la température !
     **Note sur les couleurs :**  
-    - Les couleurs visent à caractériser le **MODÈLE** (données issues du fichier `.csv` inséré).  
+    - Les couleurs visent à caractériser le **MODÈLE** (données issues du fichier `.csv`).  
     - Rouge → Modèle plus chaud que TRACC  
     - Bleu → Modèle plus froid que TRACC  
     - Pour les indicateurs de précision : vert → bon résultat, rouge → moins bon résultat
