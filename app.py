@@ -383,7 +383,7 @@ if uploaded:
     st.dataframe(
         df_diff_round.style
             .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT)
-            .format("{:.2f}", subset=["Diff_Tn_mois","Diff_Tm_mois","Diff_Tx_mois"]),
+            .format("{:.2f}", subset=["Diff_Tn_mois","Diff_Tmoy_mois","Diff_Tx_mois"]),
         hide_index=True,
         use_container_width=True
     )
