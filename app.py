@@ -141,7 +141,7 @@ if uploaded:
     
     st.markdown(
         """
-        - 
+        La précision est calculé selon la différence moyenne entre les percentiles (RMSE) et l'écart-type du mois de la TRACC
         """,
         unsafe_allow_html=True
     )
