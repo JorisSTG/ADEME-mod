@@ -331,6 +331,106 @@ if uploaded:
     st.write("Tableau Tn / Tmoy / Tx")
     st.dataframe(df_tstats.round(2), hide_index=True)
 
+    # ============================
+    #  SECTION: Tn / Tmoy / Tx journaliers
+    # ============================
+    st.subheader("Tn / Tmoy / Tx journaliers — CDF par mois et tableaux de percentiles")
+    
+    def daily_stats_from_hourly(hourly):
+        """
+        Retourne trois tableaux journaliers (min, mean, max).
+        Tronque si nécessaire pour avoir des jours complets (24h).
+        """
+        if len(hourly) < 24:
+            return np.array([]), np.array([]), np.array([])
+        n_full_days = len(hourly) // 24
+        arr = np.array(hourly[: n_full_days * 24]).reshape((n_full_days, 24))
+        daily_min = arr.min(axis=1)
+        daily_mean = arr.mean(axis=1)
+        daily_max = arr.max(axis=1)
+        return daily_min, daily_mean, daily_max
+    
+    # percentiles pour les petits tableaux
+    pct_table = percentiles_list  # utilise la liste déjà définie en haut (ex: [10,25,50,75,90])
+    pct_for_cdf = np.linspace(0, 100, 100)  # pour tracer les CDF
+    
+    # boucle mois par mois
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+    
+        # ---- extraire hourly pour le mois: TRACC (obs) et modèle (csv) ----
+        obs_hourly = obs_mois_all[mois_num - 1] if len(obs_mois_all) >= mois_num else np.array([])
+        idx0 = sum(heures_par_mois[:mois_num - 1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        model_hourly = model_values[idx0:idx1]
+    
+        # ---- calculer stats journalières ----
+        obs_tn, obs_tm, obs_tx = daily_stats_from_hourly(obs_hourly)
+        mod_tn, mod_tm, mod_tx = daily_stats_from_hourly(model_hourly)
+    
+        # Si pas de données, passer
+        if obs_tn.size == 0 or mod_tn.size == 0:
+            st.write(f"{mois} — données insuffisantes pour calculer les statistiques journalières.")
+            continue
+    
+        # ---- préparer CDFs (percentiles des séries journalières) ----
+        obs_tn_cdf = np.percentile(obs_tn, pct_for_cdf)
+        mod_tn_cdf = np.percentile(mod_tn, pct_for_cdf)
+        obs_tm_cdf = np.percentile(obs_tm, pct_for_cdf)
+        mod_tm_cdf = np.percentile(mod_tm, pct_for_cdf)
+        obs_tx_cdf = np.percentile(obs_tx, pct_for_cdf)
+        mod_tx_cdf = np.percentile(mod_tx, pct_for_cdf)
+    
+        # ---- tracé : 3 sous-graphes côte à côte (Tn, Tm, Tx) ----
+        fig, axs = plt.subplots(1, 3, figsize=(18, 4), tight_layout=True)
+        # Tn
+        axs[0].plot(pct_for_cdf, mod_tn_cdf, linestyle="-", linewidth=2, label="Modèle (Tn)", color="red")
+        axs[0].plot(pct_for_cdf, obs_tn_cdf, linestyle="--", linewidth=1.5, label=f"TRACC (Tn) {scenario_sel}/{ville_sel}", color="blue")
+        axs[0].set_title(f"{mois} — Tn (CDF)", color="white")
+        axs[0].set_xlabel("Percentile", color="white")
+        axs[0].set_ylabel("Température (°C)", color="white")
+        axs[0].tick_params(colors="white")
+        axs[0].legend(facecolor="black")
+    
+        # Tmoy
+        axs[1].plot(pct_for_cdf, mod_tm_cdf, linestyle="-", linewidth=2, label="Modèle (Tmoy)", color="red")
+        axs[1].plot(pct_for_cdf, obs_tm_cdf, linestyle="--", linewidth=1.5, label=f"TRACC (Tmoy) {scenario_sel}/{ville_sel}", color="blue")
+        axs[1].set_title(f"{mois} — Tmoy (CDF)", color="white")
+        axs[1].set_xlabel("Percentile", color="white")
+        axs[1].tick_params(colors="white")
+        axs[1].legend(facecolor="black")
+    
+        # Tx
+        axs[2].plot(pct_for_cdf, mod_tx_cdf, linestyle="-", linewidth=2, label="Modèle (Tx)", color="red")
+        axs[2].plot(pct_for_cdf, obs_tx_cdf, linestyle="--", linewidth=1.5, label=f"TRACC (Tx) {scenario_sel}/{ville_sel}", color="blue")
+        axs[2].set_title(f"{mois} — Tx (CDF)", color="white")
+        axs[2].set_xlabel("Percentile", color="white")
+        axs[2].tick_params(colors="white")
+        axs[2].legend(facecolor="black")
+    
+        for ax in axs:
+            ax.set_facecolor("none")  # transparent pour coller au thème
+    
+        st.pyplot(fig)
+        plt.close(fig)
+    
+        # ---- tableau des percentiles demandés pour les 3 stats ----
+        def pct_table_values(arr, pct_list):
+            return [np.percentile(arr, p) for p in pct_list]
+    
+        tab = pd.DataFrame({
+            "Percentile": [f"P{p}" for p in pct_table],
+            f"TRACC_Tn": np.round(pct_table_values(obs_tn, pct_table), 2),
+            f"Mod_Tn": np.round(pct_table_values(mod_tn, pct_table), 2),
+            f"TRACC_Tm": np.round(pct_table_values(obs_tm, pct_table), 2),
+            f"Mod_Tm": np.round(pct_table_values(mod_tm, pct_table), 2),
+            f"TRACC_Tx": np.round(pct_table_values(obs_tx, pct_table), 2),
+            f"Mod_Tx": np.round(pct_table_values(mod_tx, pct_table), 2),
+        })
+    
+        st.write(f"{mois} — Table des percentiles journaliers (Tn / Tmoy / Tx)")
+        st.dataframe(tab.style.format("{:.2f}"), hide_index=True)
+
 
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
