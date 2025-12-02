@@ -558,8 +558,8 @@ if uploaded:
             DJU_jours.append(max(0, T_base_DJU - Tmoy))
             DJC_jours.append(max(0, Tmoy - T_base_DJC))
     
-        results_dju.append({"Mois": mois, "DJU mensuel": np.nanmean(DJU_jours)})
-        results_djc.append({"Mois": mois, "DJC mensuel": np.nanmean(DJC_jours)})
+        results_dju.append({"Mois": mois, "DJU mensuel": np.nansum(DJU_jours)})
+        results_djc.append({"Mois": mois, "DJC mensuel": np.nansum(DJC_jours)})
     
     df_DJU = pd.DataFrame(results_dju)
     df_DJC = pd.DataFrame(results_djc)
