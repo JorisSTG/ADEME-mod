@@ -644,6 +644,18 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
+    # --------------------------
+    # Somme annuelle DJC et DJF
+    # --------------------------
+    total_DJC_TRACC = df_DJC["TRACC"].sum()
+    total_DJC_modele = df_DJC["Modèle"].sum()
+    
+    total_DJF_TRACC = df_DJF["TRACC"].sum()
+    total_DJF_modele = df_DJF["Modèle"].sum()
+    
+    st.subheader("Sommes annuelles")
+    st.write(f"DJC annuel — TRACC : {total_DJC_TRACC:.2f}, Modèle : {total_DJC_modele:.2f}")
+    st.write(f"DJF annuel — TRACC : {total_DJF_TRACC:.2f}, Modèle : {total_DJF_modele:.2f}")
 
 
     # ======================================
