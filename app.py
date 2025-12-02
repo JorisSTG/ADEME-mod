@@ -549,7 +549,7 @@ if uploaded:
     results_djf = []
     
     for mois_num in range(1, 13):
-        mois = mois_noms[mois_num]
+        mois = mois_num
     
         # Séries journalières déjà calculées
         Tx_tracc = Tx_jour_all[mois_num-1]
