@@ -533,36 +533,29 @@ if uploaded:
         st.dataframe(df_diff_styled, hide_index=True)
     
     # ============================
-    # SECTION DJU / DJC journaliers pour TRACC et modèle
+    #   SECTION DJU / DJC journaliers
     # ============================
-    st.subheader("DJU / DJC journaliers (TRACC et Modèle)")
+    st.subheader("DJU / DJC journaliers (calculés à partir de Tx et Tn journaliers)")
     
-    # Seuils
+    # Saisie des seuils (une seule fois)
     T_base_DJU = float(st.text_input("Base DJU (°C)", "18"))
     T_base_DJC = float(st.text_input("Base DJC (°C)", "26"))
     
     results_dju_tracc = []
     results_djc_tracc = []
-    results_dju_mod = []
-    results_djc_mod = []
+    results_dju_mod   = []
+    results_djc_mod   = []
     
-    for mois_num in range(1, 13):
-        mois = mois_noms[mois_num]
+    for mois_num in range(12):  # indices 0 à 11
+        mois = mois_noms[mois_num + 1]
     
         # TRACC
-        Tx_tracc = Tx_jour_all[mois_num-1]
-        Tn_tracc = Tn_jour_all[mois_num-1]
-        # Modèle
-        Tx_mod = Tx_jour_mod_all[mois_num-1]
-        Tn_mod = Tn_jour_mod_all[mois_num-1]
+        Tx_tracc = Tx_jour_all[mois_num]
+        Tn_tracc = Tn_jour_all[mois_num]
     
-        # Initialisation des listes journalières
         DJU_tracc_jours = []
         DJC_tracc_jours = []
-        DJU_mod_jours = []
-        DJC_mod_jours = []
     
-        # --- TRACC ---
         for Tx, Tn in zip(Tx_tracc, Tn_tracc):
             if np.isnan(Tx) or np.isnan(Tn):
                 DJU_tracc_jours.append(np.nan)
@@ -572,7 +565,16 @@ if uploaded:
             DJU_tracc_jours.append(max(0, T_base_DJU - Tmoy))
             DJC_tracc_jours.append(max(0, Tmoy - T_base_DJC))
     
-        # --- Modèle ---
+        results_dju_tracc.append({"Mois": mois, "DJU_mensuel": np.nansum(DJU_tracc_jours)})
+        results_djc_tracc.append({"Mois": mois, "DJC_mensuel": np.nansum(DJC_tracc_jours)})
+    
+        # Modèle
+        Tx_mod = Tx_jour_mod_all[mois_num]
+        Tn_mod = Tn_jour_mod_all[mois_num]
+    
+        DJU_mod_jours = []
+        DJC_mod_jours = []
+    
         for Tx, Tn in zip(Tx_mod, Tn_mod):
             if np.isnan(Tx) or np.isnan(Tn):
                 DJU_mod_jours.append(np.nan)
@@ -582,29 +584,60 @@ if uploaded:
             DJU_mod_jours.append(max(0, T_base_DJU - Tmoy))
             DJC_mod_jours.append(max(0, Tmoy - T_base_DJC))
     
-        # Sommes mensuelles
-        results_dju_tracc.append({"Mois": mois, "DJU mensuel": np.nansum(DJU_tracc_jours)})
-        results_djc_tracc.append({"Mois": mois, "DJC mensuel": np.nansum(DJC_tracc_jours)})
-        results_dju_mod.append({"Mois": mois, "DJU mensuel": np.nansum(DJU_mod_jours)})
-        results_djc_mod.append({"Mois": mois, "DJC mensuel": np.nansum(DJC_mod_jours)})
+        results_dju_mod.append({"Mois": mois, "DJU_mensuel": np.nansum(DJU_mod_jours)})
+        results_djc_mod.append({"Mois": mois, "DJC_mensuel": np.nansum(DJC_mod_jours)})
     
-    # DataFrames
+    # Convertir en DataFrames
     df_DJU_tracc = pd.DataFrame(results_dju_tracc)
     df_DJC_tracc = pd.DataFrame(results_djc_tracc)
-    df_DJU_mod = pd.DataFrame(results_dju_mod)
-    df_DJC_mod = pd.DataFrame(results_djc_mod)
+    df_DJU_mod   = pd.DataFrame(results_dju_mod)
+    df_DJC_mod   = pd.DataFrame(results_djc_mod)
     
-    st.subheader("DJU – Somme mensuelle")
-    st.dataframe(pd.concat([df_DJU_tracc.set_index("Mois"), df_DJU_mod.set_index("Mois")], axis=1, keys=["TRACC","Modèle"]).round(2))
+    # Afficher tableaux
+    st.subheader("DJU mensuel — TRACC")
+    st.dataframe(df_DJU_tracc, hide_index=True)
+    st.subheader("DJU mensuel — Modèle")
+    st.dataframe(df_DJU_mod, hide_index=True)
     
-    st.subheader("DJC – Somme mensuelle")
-    st.dataframe(pd.concat([df_DJC_tracc.set_index("Mois"), df_DJC_mod.set_index("Mois")], axis=1, keys=["TRACC","Modèle"]).round(2))
+    st.subheader("DJC mensuel — TRACC")
+    st.dataframe(df_DJC_tracc, hide_index=True)
+    st.subheader("DJC mensuel — Modèle")
+    st.dataframe(df_DJC_mod, hide_index=True)
     
-    # Somme annuelle
-    st.write("DJU annuel – TRACC :", np.nansum(df_DJU_tracc["DJU mensuel"]))
-    st.write("DJU annuel – Modèle :", np.nansum(df_DJU_mod["DJU mensuel"]))
-    st.write("DJC annuel – TRACC :", np.nansum(df_DJC_tracc["DJC mensuel"]))
-    st.write("DJC annuel – Modèle :", np.nansum(df_DJC_mod["DJC mensuel"]))
+    # Sommes annuelles
+    sum_dju_tracc = df_DJU_tracc["DJU_mensuel"].sum()
+    sum_dju_mod   = df_DJU_mod["DJU_mensuel"].sum()
+    sum_djc_tracc = df_DJC_tracc["DJC_mensuel"].sum()
+    sum_djc_mod   = df_DJC_mod["DJC_mensuel"].sum()
+    
+    st.write(f"Somme annuelle DJU — TRACC: {sum_dju_tracc:.2f}")
+    st.write(f"Somme annuelle DJU — Modèle: {sum_dju_mod:.2f}")
+    st.write(f"Somme annuelle DJC — TRACC: {sum_djc_tracc:.2f}")
+    st.write(f"Somme annuelle DJC — Modèle: {sum_djc_mod:.2f}")
+    
+    # -----------------------------
+    # Graphique en bâtons
+    # -----------------------------
+    fig, ax = plt.subplots(1, 2, figsize=(14, 5))
+    
+    # DJU
+    ax[0].bar(df_DJU_tracc["Mois"], df_DJU_tracc["DJU_mensuel"], color="blue", alpha=0.6, label="TRACC")
+    ax[0].bar(df_DJU_mod["Mois"], df_DJU_mod["DJU_mensuel"], color="red", alpha=0.6, label="Modèle")
+    ax[0].set_title("DJU mensuel")
+    ax[0].set_ylabel("DJU (°C·jour)")
+    ax[0].legend()
+    
+    # DJC
+    ax[1].bar(df_DJC_tracc["Mois"], df_DJC_tracc["DJC_mensuel"], color="blue", alpha=0.6, label="TRACC")
+    ax[1].bar(df_DJC_mod["Mois"], df_DJC_mod["DJC_mensuel"], color="red", alpha=0.6, label="Modèle")
+    ax[1].set_title("DJC mensuel")
+    ax[1].set_ylabel("DJC (°C·jour)")
+    ax[1].legend()
+    
+    plt.tight_layout()
+    st.pyplot(fig)
+    plt.close(fig)
+
 
 
     
