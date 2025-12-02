@@ -539,7 +539,7 @@ if uploaded:
     
     # Saisie des seuils
     T_base_DJU = float(st.text_input("Base DJU (°C)", "18"))
-    T_base_DJC = float(st.text_input("Base DJC (°C)", "26"))
+    T_base_DJC = float(st.text_input("Base DJC (°C)", "22"))
     
     # Listes pour stocker les résultats par mois
     results_dju = []
@@ -567,13 +567,13 @@ if uploaded:
         # Somme mensuelle
         results_dju.append({
             "Mois": mois,
-            "TRACC": np.nansum(DJU_tracc_jours),
-            "Modèle": np.nansum(DJU_mod_jours)
+            "TRACC": np.nansum(DJU_tracc_jours).round(2),
+            "Modèle": np.nansum(DJU_mod_jours).round(2)
         })
         results_djc.append({
             "Mois": mois,
-            "TRACC": np.nansum(DJC_tracc_jours),
-            "Modèle": np.nansum(DJC_mod_jours)
+            "TRACC": np.nansum(DJC_tracc_jours).round(2),
+            "Modèle": np.nansum(DJC_mod_jours).round(2)
         })
     
     # Convertir en DataFrames
