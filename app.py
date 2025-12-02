@@ -539,8 +539,8 @@ if uploaded:
     st.subheader("DJC (chauffage) et DJF (froid) journaliers — TRACC vs Modèle")
     
     # Seuils
-    T_base_chauffage = float(st.text_input("Base DJC (°C) — chauffage", "18"))
-    T_base_froid = float(st.text_input("Base DJF (°C) — refroidissement", "26"))
+    T_base_chauffage = float(st.text_input("Base DJC (°C) — chauffage", "19"))
+    T_base_froid = float(st.text_input("Base DJF (°C) — refroidissement", "23"))
     
     results_djc = []
     results_djf = []
