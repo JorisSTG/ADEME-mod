@@ -618,25 +618,21 @@ if uploaded:
     # --------------------------
     st.subheader("Diagrammes bâtons mensuels — DJC et DJF")
     
-    # DJC
-    fig, ax = plt.subplots(figsize=(12, 4))
-    ax.bar(df_DJC["Mois"], df_DJC["TRACC"], width=0.4, label="TRACC", color="blue")
-    ax.bar(df_DJC["Mois"], df_DJC["Modèle"], width=0.4, label="Modèle", color="red", alpha=0.7)
-    ax.set_title("DJC – Chauffage mensuel (TRACC vs Modèle)")
-    ax.set_ylabel("Somme DJC (°C·jours)")
-    ax.legend()
-    st.pyplot(fig)
-    plt.close(fig)
-    
-    # DJF
-    fig, ax = plt.subplots(figsize=(12, 4))
-    ax.bar(df_DJF["Mois"], df_DJF["TRACC"], width=0.4, label="TRACC", color="blue")
-    ax.bar(df_DJF["Mois"], df_DJF["Modèle"], width=0.4, label="Modèle", color="red", alpha=0.7)
-    ax.set_title("DJF – Refroidissement mensuel (TRACC vs Modèle)")
-    ax.set_ylabel("Somme DJF (°C·jours)")
-    ax.legend()
-    st.pyplot(fig)
-    plt.close(fig)
+    # -----------------------------
+    # Diagrammes en bâtons par mois
+    # -----------------------------
+    for df, titre in zip([df_DJU, df_DJC], ["DJU", "DJC"]):
+        fig, ax = plt.subplots(figsize=(14, 4))
+        ax.bar(df.index - 0.2, df["TRACC"], width=0.4, color="blue", label="TRACC")
+        ax.bar(df.index + 0.2, df["Modèle"], width=0.4, color="red", label="Modèle")
+        ax.set_xticks(df.index)
+        ax.set_xticklabels(df["Mois"])
+        ax.set_title(f"{titre} mensuel — Modèle vs TRACC")
+        ax.set_ylabel(f"{titre} (°C·jour)")
+        ax.set_xlabel("Mois")
+        ax.legend()
+        st.pyplot(fig)
+        plt.close(fig)
 
 
 
