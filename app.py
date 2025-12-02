@@ -541,7 +541,6 @@ if uploaded:
     
     st.subheader("DJC (chauffage) et DJF (froid) journaliers — TRACC vs Modèle")
     
-    # Seuils
     T_base_chauffage = float(st.text_input("Base DJC (°C) — chauffage", "19"))
     T_base_froid = float(st.text_input("Base DJF (°C) — refroidissement", "23"))
     
@@ -560,43 +559,45 @@ if uploaded:
         model_hourly = model_values[idx0:idx1]
         Tx_mod, Tm_mod, Tn_mod = daily_stats_from_hourly(model_hourly)
     
-        # Initialiser listes journalières
         DJC_tracc_jours, DJF_tracc_jours = [], []
         DJC_mod_jours, DJF_mod_jours = [], []
     
         n_jours = len(Tx_tracc)
         for j in range(n_jours):
-            # TRACC
             Tm_tracc = (Tx_tracc[j] + Tn_tracc[j]) / 2
             DJC_tracc_jours.append(max(0, T_base_chauffage - Tm_tracc))
             DJF_tracc_jours.append(max(0, Tm_tracc - T_base_froid))
     
-            # Modèle
             if j < len(Tx_mod):
                 Tm_mod = (Tx_mod[j] + Tn_mod[j]) / 2
                 DJC_mod_jours.append(max(0, T_base_chauffage - Tm_mod))
                 DJF_mod_jours.append(max(0, Tm_mod - T_base_froid))
     
-        # Somme mensuelle
-        diff_djc = np.nansum(DJC_mod_jours) - np.nansum(DJC_tracc_jours)
-        diff_djf = np.nansum(DJF_mod_jours) - np.nansum(DJF_tracc_jours)
+        DJC_tracc_sum = float(np.nansum(DJC_tracc_jours))
+        DJC_mod_sum = float(np.nansum(DJC_mod_jours))
+        DJF_tracc_sum = float(np.nansum(DJF_tracc_jours))
+        DJF_mod_sum = float(np.nansum(DJF_mod_jours))
     
         results_djc.append({
             "Mois": mois,
-            "TRACC": float(np.nansum(DJC_tracc_jours).round(2)),
-            "Modèle": float(np.nansum(DJC_mod_jours).round(2)),
-            "Différence": float(diff_djc.round(2))
+            "TRACC": DJC_tracc_sum,
+            "Modèle": DJC_mod_sum,
+            "Différence": DJC_mod_sum - DJC_tracc_sum
         })
         results_djf.append({
             "Mois": mois,
-            "TRACC": float(np.nansum(DJF_tracc_jours).round(2)),
-            "Modèle": float(np.nansum(DJF_mod_jours).round(2)),
-            "Différence": float(diff_djf.round(2))
+            "TRACC": DJF_tracc_sum,
+            "Modèle": DJF_mod_sum,
+            "Différence": DJF_mod_sum - DJF_tracc_sum
         })
     
-    # DataFrames
     df_DJC = pd.DataFrame(results_djc)
     df_DJF = pd.DataFrame(results_djf)
+    
+    # Convertir explicitement les colonnes numériques en float
+    for df in [df_DJC, df_DJF]:
+        for col in ["TRACC", "Modèle", "Différence"]:
+            df[col] = df[col].astype(float)
     
     # --------------------------
     # Affichage tables Streamlit
@@ -612,6 +613,7 @@ if uploaded:
         df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=-50, vmax=50).format("{:.2f}"),
         hide_index=True
     )
+
     
     # --------------------------
     # Diagrammes bâtons mensuels
