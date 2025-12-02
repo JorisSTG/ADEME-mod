@@ -607,18 +607,10 @@ if uploaded:
     # Affichage tables Streamlit
     # --------------------------
     st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
-    st.write(
-        df_DJC.style
-            .background_gradient(subset=["Différence"], cmap="bwr", vmin=vminDJU, vmax=vmaxDJU)
-            .format("{:.2f}")
-    )
+    st.dataframe(df_DJC.round(2))  # Arrondi à 2 décimales
     
     st.subheader("DJF – Refroidissement (somme journalière par mois)")
-    st.write(
-        df_DJF.style
-            .background_gradient(subset=["Différence"], cmap="bwr_r", vmin=vminDJU, vmax=vmaxDJU)
-            .format("{:.2f}")
-    )
+    st.dataframe(df_DJF.round(2))  # Arrondi à 2 décimales
 
     
     # --------------------------
