@@ -619,13 +619,13 @@ if uploaded:
     st.subheader("Diagrammes bâtons mensuels — DJC et DJF")
 
     # Convertir en DataFrames
-    df_DJU = pd.DataFrame(results_dju)
     df_DJC = pd.DataFrame(results_djc)
+    df_DJF = pd.DataFrame(results_djf)
     
     # -----------------------------
     # Diagrammes en bâtons par mois
     # -----------------------------
-    for df, titre in zip([df_DJU, df_DJC], ["DJU", "DJC"]):
+    for df, titre in zip([df_DJC, df_DJF], ["DJC", "DJF"]):
         fig, ax = plt.subplots(figsize=(14, 4))
         ax.bar(df.index - 0.2, df["TRACC"], width=0.4, color="blue", label="TRACC")
         ax.bar(df.index + 0.2, df["Modèle"], width=0.4, color="red", label="Modèle")
