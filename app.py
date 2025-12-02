@@ -552,7 +552,7 @@ if uploaded:
     4: "Avril",     5: "Mai",      6: "Juin",
     7: "Juillet",   8: "Août",     9: "Septembre",
     10: "Octobre", 11: "Novembre", 12: "Décembre"
-}
+    }
 
     for mois_num in range(1, 13):
         mois = mois_noms_sans_num[mois_num]
@@ -654,8 +654,8 @@ if uploaded:
     total_DJF_modele = df_DJF["Modèle"].sum()
     
     st.subheader("Sommes annuelles")
-    st.write(f"DJC annuel — TRACC : {total_DJC_TRACC:.2f}, Modèle : {total_DJC_modele:.2f}")
-    st.write(f"DJF annuel — TRACC : {total_DJF_TRACC:.2f}, Modèle : {total_DJF_modele:.2f}")
+    st.write(f"DJC annuel : TRACC = {total_DJC_TRACC:.2f}    /    Modèle = {total_DJC_modele:.2f}")
+    st.write(f"DJF annuel : TRACC = {total_DJF_TRACC:.2f}    /    Modèle = {total_DJF_modele:.2f}")
 
 
     # ======================================
