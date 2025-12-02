@@ -388,7 +388,6 @@ if uploaded:
         use_container_width=True
     )
 
-
     # ============================
     #  SECTION: Tn / Tmoy / Tx journaliers
     # ============================
@@ -411,11 +410,11 @@ if uploaded:
     # percentiles pour les petits tableaux
     pct_table = percentiles_list  # utilise la liste déjà définie en haut (ex: [10,25,50,75,90])
     pct_for_cdf = np.linspace(0, 100, 100)  # pour tracer les CDF
-
+    
     Tx_jour_all = []
     Tn_jour_all = []
     Tm_jour_all = []
-
+    
     # boucle mois par mois
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
@@ -433,7 +432,6 @@ if uploaded:
         Tn_jour_all.append(obs_tn)
         Tm_jour_all.append(obs_tm)
         Tx_jour_all.append(obs_tx)
-
     
         # Si pas de données, passer
         if obs_tn.size == 0 or mod_tn.size == 0:
@@ -450,30 +448,24 @@ if uploaded:
     
         # ---- tracé : un seul graphique regroupant Tn / Tmoy / Tx ----
         fig, ax = plt.subplots(figsize=(12, 4))
-        
+    
         # Couleurs cohérentes pour chaque variable
         colors = {
             "Tn": "cyan",
             "Tm": "white",
             "Tx": "red"
         }
-        
-        # Tn
-        ax.plot(pct_for_cdf, mod_tx_cdf, linestyle="-", linewidth=2,
-                label="Modèle Tx", color=colors["Tx"])
-        ax.plot(pct_for_cdf, mod_tm_cdf, linestyle="-", linewidth=2,
-                label="Modèle Tmoy", color=colors["Tm"])
-        ax.plot(pct_for_cdf, mod_tn_cdf, linestyle="-", linewidth=2,
-                label="Modèle Tn", color=colors["Tn"])
-
     
-        ax.plot(pct_for_cdf, obs_tx_cdf, linestyle="--", linewidth=1.7,
-                label="TRACC Tx", color=colors["Tx"])
-        ax.plot(pct_for_cdf, obs_tm_cdf, linestyle="--", linewidth=1.7,
-                label="TRACC Tmoy", color=colors["Tm"])
-        ax.plot(pct_for_cdf, obs_tn_cdf, linestyle="--", linewidth=1.7,
-                label="TRACC Tn", color=colors["Tn"])
-        
+        # Tracer Modèle
+        ax.plot(pct_for_cdf, mod_tx_cdf, linestyle="-", linewidth=2, label="Modèle Tx", color=colors["Tx"])
+        ax.plot(pct_for_cdf, mod_tm_cdf, linestyle="-", linewidth=2, label="Modèle Tmoy", color=colors["Tm"])
+        ax.plot(pct_for_cdf, mod_tn_cdf, linestyle="-", linewidth=2, label="Modèle Tn", color=colors["Tn"])
+    
+        # Tracer TRACC
+        ax.plot(pct_for_cdf, obs_tx_cdf, linestyle="--", linewidth=1.7, label="TRACC Tx", color=colors["Tx"])
+        ax.plot(pct_for_cdf, obs_tm_cdf, linestyle="--", linewidth=1.7, label="TRACC Tmoy", color=colors["Tm"])
+        ax.plot(pct_for_cdf, obs_tn_cdf, linestyle="--", linewidth=1.7, label="TRACC Tn", color=colors["Tn"])
+    
         # Mise en forme
         ax.set_title(f"{mois} — CDF Tn_jour / Tmoy_jour / Tx_jour (Modèle vs TRACC +{scenario_sel}/{ville_sel})", color="white")
         ax.set_xlabel("Percentile", color="white")
@@ -481,32 +473,31 @@ if uploaded:
         ax.tick_params(colors="white")
         ax.legend(facecolor="black")
         ax.set_facecolor("none")
-        
+    
         st.pyplot(fig)
         plt.close(fig)
-
+    
         def pct_table_values(arr, pct_list):
             return [np.percentile(arr, p) for p in pct_list]
     
+        # ---- Tableau des percentiles ----
         tab = pd.DataFrame({
             "Percentile": [f"P{p}" for p in pct_table],
             "TRACC_Tn": np.round(pct_table_values(obs_tn, pct_table), 2),
-            "Mod_Tn":   np.round(pct_table_values(mod_tn, pct_table), 2),
+            "Mod_Tn": np.round(pct_table_values(mod_tn, pct_table), 2),
             "TRACC_Tm": np.round(pct_table_values(obs_tm, pct_table), 2),
-            "Mod_Tm":   np.round(pct_table_values(mod_tm, pct_table), 2),
+            "Mod_Tm": np.round(pct_table_values(mod_tm, pct_table), 2),
             "TRACC_Tx": np.round(pct_table_values(obs_tx, pct_table), 2),
-            "Mod_Tx":   np.round(pct_table_values(mod_tx, pct_table), 2),
+            "Mod_Tx": np.round(pct_table_values(mod_tx, pct_table), 2),
         })
     
         st.write(f"{mois} — Table des percentiles journaliers (Tn_jour / Tmoy_jour / Tx_jour)")
     
-        tab = pd.DataFrame(tab)
         num_cols = tab.select_dtypes(include=[np.number]).columns
         tab[num_cols] = tab[num_cols].apply(pd.to_numeric, errors="coerce")
         styler = tab.style.format({col: "{:.2f}" for col in num_cols})
-    
         st.dataframe(styler, hide_index=True)
-
+    
         # ---- Tableau des différences (Modèle - TRACC) ----
         df_diff = pd.DataFrame({
             "Percentile": tab["Percentile"],
@@ -514,73 +505,68 @@ if uploaded:
             "Diff_Tm_jour": tab["Mod_Tm"] - tab["TRACC_Tm"],
             "Diff_Tx_jour": tab["Mod_Tx"] - tab["TRACC_Tx"],
         })
-        
-        # Convertir en float + arrondir
-        num_cols_diff = ["Diff_Tn_jour", "Diff_Tm_jour", "Diff_Tx_jour"]
+    
         df_diff[num_cols_diff] = df_diff[num_cols_diff].apply(pd.to_numeric, errors="coerce").round(2)
-        
+    
         st.write(f"{mois} — Différences Modèle - TRACC (Tn_jour / Tmoy_jour / Tx_jour)")
-        
+    
         df_diff_styled = (
             df_diff.style
-                .background_gradient(
-                    cmap="bwr",
-                    vmin=vminT,
-                    vmax=vmaxT,
-                    subset=num_cols_diff
-                )
-                .format({col: "{:.2f}" for col in num_cols_diff})
+            .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT, subset=["Diff_Tn_jour","Diff_Tm_jour","Diff_Tx_jour"])
+            .format({col: "{:.2f}" for col in ["Diff_Tn_jour","Diff_Tm_jour","Diff_Tx_jour"]})
         )
-        
         st.dataframe(df_diff_styled, hide_index=True)
-
-        # ============================
-        #   SECTION DJU / DJC JOURNALIERS
-        # ============================
-        st.subheader("DJU / DJC journaliers (calculés à partir de Tx et Tn journaliers)")
-        
-        # Saisie des seuils (une seule fois)
-        T_base_DJU = float(st.text_input("Base DJU (°C)", "18"))
-        T_base_DJC = float(st.text_input("Base DJC (°C)", "26"))
-        
-        results_dju = []
-        results_djc = []
-        
-        for mois_num in range(1, 13):
-            mois = mois_noms[mois_num]
-        
-            Tx_mois = Tx_jour_all[mois_num-1]
-            Tn_mois = Tn_jour_all[mois_num-1]
-        
-            if len(Tx_mois) == 0 or len(Tn_mois) == 0:
-                results_dju.append({"Mois": mois, "DJU mensuel": np.nan})
-                results_djc.append({"Mois": mois, "DJC mensuel": np.nan})
+    
+    # ============================
+    #   SECTION DJU / DJC JOURNALIERS
+    # ============================
+    st.subheader("DJU / DJC journaliers (calculés à partir de Tx et Tn journaliers)")
+    
+    # Saisie des seuils (une seule fois)
+    T_base_DJU = float(st.text_input("Base DJU (°C)", "18"))
+    T_base_DJC = float(st.text_input("Base DJC (°C)", "26"))
+    
+    results_dju = []
+    results_djc = []
+    
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+    
+        Tx_mois = Tx_jour_all[mois_num - 1]
+        Tn_mois = Tn_jour_all[mois_num - 1]
+    
+        if len(Tx_mois) == 0 or len(Tn_mois) == 0:
+            results_dju.append({"Mois": mois, "DJU mensuel": np.nan})
+            results_djc.append({"Mois": mois, "DJC mensuel": np.nan})
+            continue
+    
+        DJU_jours = []
+        DJC_jours = []
+    
+        for Tx, Tn in zip(Tx_mois, Tn_mois):
+            if np.isnan(Tx) or np.isnan(Tn):
+                DJU_jours.append(np.nan)
+                DJC_jours.append(np.nan)
                 continue
-        
-            DJU_jours = []
-            DJC_jours = []
-        
-            for Tx, Tn in zip(Tx_mois, Tn_mois):
-                if np.isnan(Tx) or np.isnan(Tn):
-                    DJU_jours.append(np.nan)
-                    DJC_jours.append(np.nan)
-                    continue
-        
-                Tmoy = (Tx + Tn) / 2
-                DJU_jours.append(max(0, T_base_DJU - Tmoy))
-                DJC_jours.append(max(0, Tmoy - T_base_DJC))
-        
-            results_dju.append({"Mois": mois, "DJU mensuel": np.nanmean(DJU_jours)})
-            results_djc.append({"Mois": mois, "DJC mensuel": np.nanmean(DJC_jours)})
-        
-        df_DJU = pd.DataFrame(results_dju)
-        df_DJC = pd.DataFrame(results_djc)
-        
-        st.subheader("DJU – Moyenne journalière par mois")
-        st.dataframe(df_DJU.round(2), hide_index=True)
-        
-        st.subheader("DJC – Moyenne journalière par mois")
-        st.dataframe(df_DJC.round(2), hide_index=True)
+    
+            Tmoy = (Tx + Tn) / 2
+            DJU_jours.append(max(0, T_base_DJU - Tmoy))
+            DJC_jours.append(max(0, Tmoy - T_base_DJC))
+    
+        results_dju.append({"Mois": mois, "DJU mensuel": np.nanmean(DJU_jours)})
+        results_djc.append({"Mois": mois, "DJC mensuel": np.nanmean(DJC_jours)})
+    
+    df_DJU = pd.DataFrame(results_dju)
+    df_DJC = pd.DataFrame(results_djc)
+    
+    st.subheader("DJU – Moyenne journalière par mois")
+    st.dataframe(df_DJU.round(2), hide_index=True)
+    
+    st.subheader("DJC – Moyenne journalière par mois")
+    st.dataframe(df_DJC.round(2), hide_index=True)
+
+
+    
 
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
