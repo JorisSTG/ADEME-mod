@@ -547,9 +547,13 @@ if uploaded:
     
     results_djc = []
     results_djf = []
-    
+    mois_noms_sans_num = [
+        "janvier", "février", "mars", "avril", "mai", "juin",
+        "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+    ]
+
     for mois_num in range(1, 13):
-        mois = mois_num
+        mois = mois_noms_sans_num[mois_num]
     
         # Séries journalières déjà calculées
         Tx_tracc = Tx_jour_all[mois_num-1]
