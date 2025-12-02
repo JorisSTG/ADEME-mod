@@ -535,6 +535,7 @@ if uploaded:
         )
         st.dataframe(df_diff_styled, hide_index=True)
     
+   
     # ============================
     # Calcul DJC (chauffage) et DJF (froid)
     # ============================
@@ -572,6 +573,9 @@ if uploaded:
                 Tm_mod = (Tx_mod[j] + Tn_mod[j]) / 2
                 DJC_mod_jours.append(max(0, T_base_chauffage - Tm_mod))
                 DJF_mod_jours.append(max(0, Tm_mod - T_base_froid))
+            else:
+                DJC_mod_jours.append(0)
+                DJF_mod_jours.append(0)
     
         DJC_tracc_sum = float(np.nansum(DJC_tracc_jours))
         DJC_mod_sum = float(np.nansum(DJC_mod_jours))
@@ -591,8 +595,8 @@ if uploaded:
             "Différence": DJF_mod_sum - DJF_tracc_sum
         })
     
-    df_DJC = pd.DataFrame(results_djc)
-    df_DJF = pd.DataFrame(results_djf)
+    df_DJC = pd.DataFrame(results_djc).fillna(0)
+    df_DJF = pd.DataFrame(results_djf).fillna(0)
     
     # Convertir explicitement les colonnes numériques en float
     for df in [df_DJC, df_DJF]:
@@ -608,14 +612,14 @@ if uploaded:
             .background_gradient(subset=["Différence"], cmap="bwr", vmin=vminDJU, vmax=vmaxDJU)
             .format("{:.2f}")
     )
-
+    
     st.subheader("DJF – Refroidissement (somme journalière par mois)")
     st.write(
         df_DJF.style
             .background_gradient(subset=["Différence"], cmap="bwr_r", vmin=vminDJU, vmax=vmaxDJU)
             .format("{:.2f}")
     )
-
+    
     # --------------------------
     # Diagrammes bâtons mensuels
     # --------------------------
@@ -640,6 +644,7 @@ if uploaded:
     ax.legend()
     st.pyplot(fig)
     plt.close(fig)
+
 
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
