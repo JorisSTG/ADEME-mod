@@ -577,7 +577,7 @@ if uploaded:
                 DJC_mod_jours.append(max(0, T_base_chauffage - Tm_mod))
                 DJF_mod_jours.append(max(0, Tm_mod - T_base_froid))
     
-        # Somme mensuelle + différence
+        # Somme mensuelle
         results_djc.append({
             "Mois": mois,
             "TRACC": np.nansum(DJC_tracc_jours).round(2),
@@ -594,50 +594,41 @@ if uploaded:
     # DataFrames
     df_DJC = pd.DataFrame(results_djc)
     df_DJF = pd.DataFrame(results_djf)
+
     
-    # Style avec gradient cohérent pour DJC/DJF
-    def style_diff(df, diff_col="Différence", climat="DJC", vmin=vminDJU, vmax=vmaxDJU):
-        """
-        climat : "DJC" ou "DJF"
-        """
-        if climat == "DJC":
-            # Inverser le cmap pour que positif = bleu (plus froid), négatif = rouge (plus chaud)
-            cmap_use = "bwr"
-        else:  # DJF
-            # Positif = rouge (plus chaud), négatif = bleu (plus froid)
-            cmap_use = "bwr_r"
-        return df.style.background_gradient(subset=[diff_col], cmap=cmap_use, vmin=vmin, vmax=vmax).format("{:.2f}")
-    
+    # Affichage
     st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
-    st.dataframe(style_diff(df_DJC, climat="DJC"), hide_index=True)
+    st.dataframe(
+        df_DJC.style.background_gradient(subset=["Différence"], cmap="bwr", vmin=vminDJU, vmax=vmaxDJU).format("{:.2f}"),
+        hide_index=True
+    )
     
     st.subheader("DJF – Refroidissement (somme journalière par mois)")
-    st.dataframe(style_diff(df_DJF, climat="DJF"), hide_index=True)
-
-
+    st.dataframe(
+        df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=vminDJU, vmax=vmaxDJU).format("{:.2f}"),
+        hide_index=True
+    )
     
-    # ============================
-    # Diagrammes bâtons comparatifs TRACC / Modèle
-    # ============================
-    
-    def plot_monthly_bar(df, titre, color_mod="red", color_tracc="blue"):
-        mois_labels = df["Mois"]
-        x = np.arange(len(mois_labels))
-        width = 0.35
-    
-        fig, ax = plt.subplots(figsize=(12, 4))
-        ax.bar(x - width/2, df["TRACC"], width, label="TRACC", color=color_tracc)
-        ax.bar(x + width/2, df["Modèle"], width, label="Modèle", color=color_mod)
+    # -----------------------
+    # Diagrammes bâtons DJC / DJF
+    # -----------------------
+    for df, title, color_mod, color_tracc in zip(
+        [df_DJC, df_DJF],
+        ["DJC – Chauffage", "DJF – Refroidissement"],
+        ["red", "red"],
+        ["blue", "blue"]
+    ):
+        fig, ax = plt.subplots(figsize=(12,4))
+        x = np.arange(len(df))
+        ax.bar(x - 0.2, df["TRACC"], width=0.4, label="TRACC", color=color_tracc)
+        ax.bar(x + 0.2, df["Modèle"], width=0.4, label="Modèle", color=color_mod)
         ax.set_xticks(x)
-        ax.set_xticklabels(mois_labels, rotation=45)
+        ax.set_xticklabels(df["Mois"], rotation=45)
         ax.set_ylabel("Somme DJC / DJF")
-        ax.set_title(titre)
+        ax.set_title(title)
         ax.legend()
         st.pyplot(fig)
         plt.close(fig)
-    
-    plot_monthly_bar(df_DJC, "DJC – Chauffage")
-    plot_monthly_bar(df_DJF, "DJF – Refroidissement")
 
 
 
