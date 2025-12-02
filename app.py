@@ -526,6 +526,115 @@ if uploaded:
         st.dataframe(df_diff_styled, hide_index=True)
 
 
+    # ============================
+    #      SECTION DJU / DJC JOUR
+    # ============================
+    
+    st.subheader("DJU / DJC journaliers (à partir de Tx et Tn)")
+    
+    # --- Saisie des seuils via text_input ---
+    T_base_DJU_input = st.text_input("Température de base DJU (°C)", "18")
+    T_base_DJC_input = st.text_input("Température de base DJC (°C)", "26")
+    
+    # Conversion sécurisée
+    try:
+        T_base_DJU = float(T_base_DJU_input)
+    except:
+        T_base_DJU = 18.0
+    
+    try:
+        T_base_DJC = float(T_base_DJC_input)
+    except:
+        T_base_DJC = 26.0
+    
+    
+    # ============================
+    #   CALCULS JOURNALIERS
+    # ============================
+    
+    # Tu as déjà Tx_jour_all[mois][jour] et Tn_jour_all[mois][jour]
+    # On calcule T_moy_jour = (Tx + Tn) / 2 pour chaque jour
+    
+    results_dju = []
+    results_djc = []
+    
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
+    
+        Tx_mois = Tx_jour_all[mois_num - 1]
+        Tn_mois = Tn_jour_all[mois_num - 1]
+    
+        DJU_mois = []
+        DJC_mois = []
+    
+        for Tx, Tn in zip(Tx_mois, Tn_mois):
+    
+            if np.isnan(Tx) or np.isnan(Tn):
+                DJU_mois.append(np.nan)
+                DJC_mois.append(np.nan)
+                continue
+    
+            Tmoy = (Tx + Tn) / 2
+    
+            dju = max(0, T_base_DJU - Tmoy)
+            djc = max(0, Tmoy - T_base_DJC)
+    
+            DJU_mois.append(dju)
+            DJC_mois.append(djc)
+    
+        # Stock mensuel (moyenne des jours non-nan)
+        results_dju.append({
+            "Mois": mois,
+            "DJU mensuel": np.nanmean(DJU_mois)
+        })
+    
+        results_djc.append({
+            "Mois": mois,
+            "DJC mensuel": np.nanmean(DJC_mois)
+        })
+    
+    
+    # ============================
+    #   TABLEAUX
+    # ============================
+    
+    df_DJU = pd.DataFrame(results_dju)
+    df_DJC = pd.DataFrame(results_djc)
+    
+    st.subheader("DJU – Moyenne journalière par mois")
+    st.dataframe(df_DJU.round(2), hide_index=True, use_container_width=True)
+    
+    st.subheader("DJC – Moyenne journalière par mois")
+    st.dataframe(df_DJC.round(2), hide_index=True, use_container_width=True)
+    
+    
+    # ============================
+    #   GRAPHES
+    # ============================
+    
+    # ---- DJU ----
+    st.subheader("Graphique DJU mensualisé (calcul journalier)")
+    
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.plot(df_DJU["Mois"], df_DJU["DJU mensuel"], "-o", label="DJU")
+    ax.set_ylabel("DJU (°C⋅jours)")
+    ax.tick_params(axis='x', rotation=45)
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # ---- DJC ----
+    st.subheader("Graphique DJC mensualisé (calcul journalier)")
+    
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.plot(df_DJC["Mois"], df_DJC["DJC mensuel"], "-o", label="DJC")
+    ax.set_ylabel("DJC (°C⋅jours)")
+    ax.tick_params(axis='x', rotation=45)
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
+
+
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
     # ======================================
