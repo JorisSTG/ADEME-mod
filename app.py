@@ -533,74 +533,92 @@ if uploaded:
         st.dataframe(df_diff_styled, hide_index=True)
     
     # ============================
-    #   SECTION DJU / DJC journaliers - Tableau unique et diagrammes bâtons
+    # Calcul DJC (chauffage) et DJF (froid)
     # ============================
-    st.subheader("DJU / DJC mensuels — Comparaison Modèle vs TRACC")
     
-    # Saisie des seuils
-    T_base_DJU = float(st.text_input("Base DJU (°C)", "18"))
-    T_base_DJC = float(st.text_input("Base DJC (°C)", "22"))
+    st.subheader("DJC (chauffage) et DJF (froid) journaliers — TRACC vs Modèle")
     
-    # Listes pour stocker les résultats par mois
-    results_dju = []
+    # Seuils
+    T_base_chauffage = float(st.text_input("Base DJC (°C) — chauffage", "18"))
+    T_base_froid = float(st.text_input("Base DJF (°C) — refroidissement", "26"))
+    
     results_djc = []
+    results_djf = []
     
-    for mois_num in range(12):  # indices 0 à 11
-        mois = mois_noms[mois_num + 1]
+    for mois_num in range(1, 13):
+        mois = mois_noms[mois_num]
     
-        # TRACC
-        Tx_tracc = Tx_jour_all[mois_num]
-        Tn_tracc = Tn_jour_all[mois_num]
-        DJU_tracc_jours = [max(0, T_base_DJU - (Tx+Tn)/2) if not np.isnan(Tx) and not np.isnan(Tn) else np.nan
-                           for Tx, Tn in zip(Tx_tracc, Tn_tracc)]
-        DJC_tracc_jours = [max(0, (Tx+Tn)/2 - T_base_DJC) if not np.isnan(Tx) and not np.isnan(Tn) else np.nan
-                           for Tx, Tn in zip(Tx_tracc, Tn_tracc)]
+        # Séries journalières déjà calculées
+        Tx_tracc = Tx_jour_all[mois_num-1]
+        Tn_tracc = Tn_jour_all[mois_num-1]
     
-        # Modèle
-        Tx_mod = Tx_jour_mod_all[mois_num]
-        Tn_mod = Tn_jour_mod_all[mois_num]
-        DJU_mod_jours = [max(0, T_base_DJU - (Tx+Tn)/2) if not np.isnan(Tx) and not np.isnan(Tn) else np.nan
-                         for Tx, Tn in zip(Tx_mod, Tn_mod)]
-        DJC_mod_jours = [max(0, (Tx+Tn)/2 - T_base_DJC) if not np.isnan(Tx) and not np.isnan(Tn) else np.nan
-                         for Tx, Tn in zip(Tx_mod, Tn_mod)]
+        idx0 = sum(heures_par_mois[:mois_num-1])
+        idx1 = sum(heures_par_mois[:mois_num])
+        model_hourly = model_values[idx0:idx1]
+        Tx_mod, Tm_mod, Tn_mod = daily_stats_from_hourly(model_hourly)
+    
+        # Initialiser listes journalières
+        DJC_tracc_jours, DJF_tracc_jours = [], []
+        DJC_mod_jours, DJF_mod_jours = [], []
+    
+        n_jours = len(Tx_tracc)
+        for j in range(n_jours):
+            # TRACC
+            Tm_tracc = (Tx_tracc[j] + Tn_tracc[j]) / 2
+            DJC_tracc_jours.append(max(0, T_base_chauffage - Tm_tracc))
+            DJF_tracc_jours.append(max(0, Tm_tracc - T_base_froid))
+    
+            # Modèle
+            if j < len(Tx_mod):
+                Tm_mod = (Tx_mod[j] + Tn_mod[j]) / 2
+                DJC_mod_jours.append(max(0, T_base_chauffage - Tm_mod))
+                DJF_mod_jours.append(max(0, Tm_mod - T_base_froid))
     
         # Somme mensuelle
-        results_dju.append({
-            "Mois": mois,
-            "TRACC": np.nansum(DJU_tracc_jours).round(2),
-            "Modèle": np.nansum(DJU_mod_jours).round(2)
-        })
         results_djc.append({
             "Mois": mois,
             "TRACC": np.nansum(DJC_tracc_jours).round(2),
             "Modèle": np.nansum(DJC_mod_jours).round(2)
         })
+        results_djf.append({
+            "Mois": mois,
+            "TRACC": np.nansum(DJF_tracc_jours).round(2),
+            "Modèle": np.nansum(DJF_mod_jours).round(2)
+        })
     
-    # Convertir en DataFrames
-    df_DJU = pd.DataFrame(results_dju)
+    # DataFrames
     df_DJC = pd.DataFrame(results_djc)
+    df_DJF = pd.DataFrame(results_djf)
     
-    # Affichage des tableaux
-    st.subheader("DJU mensuel — Modèle vs TRACC")
-    st.dataframe(df_DJU, hide_index=True)
-    st.subheader("DJC mensuel — Modèle vs TRACC")
+    st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
     st.dataframe(df_DJC, hide_index=True)
     
-    # -----------------------------
-    # Diagrammes en bâtons par mois
-    # -----------------------------
-    for df, titre in zip([df_DJU, df_DJC], ["DJU", "DJC"]):
-        fig, ax = plt.subplots(figsize=(14, 4))
-        ax.bar(df.index - 0.2, df["TRACC"], width=0.4, color="blue", label="TRACC")
-        ax.bar(df.index + 0.2, df["Modèle"], width=0.4, color="red", label="Modèle")
-        ax.set_xticks(df.index)
-        ax.set_xticklabels(df["Mois"])
-        ax.set_title(f"{titre} mensuel — Modèle vs TRACC")
-        ax.set_ylabel(f"{titre} (°C·jour)")
-        ax.set_xlabel("Mois")
+    st.subheader("DJF – Refroidissement (somme journalière par mois)")
+    st.dataframe(df_DJF, hide_index=True)
+    
+    # ============================
+    # Diagrammes bâtons comparatifs TRACC / Modèle
+    # ============================
+    
+    def plot_monthly_bar(df, titre, color_mod="red", color_tracc="blue"):
+        mois_labels = df["Mois"]
+        x = np.arange(len(mois_labels))
+        width = 0.35
+    
+        fig, ax = plt.subplots(figsize=(12, 4))
+        ax.bar(x - width/2, df["TRACC"], width, label="TRACC", color=color_tracc)
+        ax.bar(x + width/2, df["Modèle"], width, label="Modèle", color=color_mod)
+        ax.set_xticks(x)
+        ax.set_xticklabels(mois_labels, rotation=45)
+        ax.set_ylabel("Somme DJC / DJF")
+        ax.set_title(titre)
         ax.legend()
         st.pyplot(fig)
         plt.close(fig)
+    
+    plot_monthly_bar(df_DJC, "DJC – Chauffage")
+    plot_monthly_bar(df_DJF, "DJF – Refroidissement")
+
 
 
     # ======================================
