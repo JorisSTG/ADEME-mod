@@ -617,6 +617,10 @@ if uploaded:
     # Diagrammes bâtons mensuels
     # --------------------------
     st.subheader("Diagrammes bâtons mensuels — DJC et DJF")
+
+    # Convertir en DataFrames
+    df_DJU = pd.DataFrame(results_dju)
+    df_DJC = pd.DataFrame(results_djc)
     
     # -----------------------------
     # Diagrammes en bâtons par mois
