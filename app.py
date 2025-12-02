@@ -578,36 +578,43 @@ if uploaded:
                 DJF_mod_jours.append(max(0, Tm_mod - T_base_froid))
     
         # Somme mensuelle
+        diff_djc = np.nansum(DJC_mod_jours) - np.nansum(DJC_tracc_jours)
+        diff_djf = np.nansum(DJF_mod_jours) - np.nansum(DJF_tracc_jours)
+        
         results_djc.append({
             "Mois": mois,
-            "TRACC": np.nansum(DJC_tracc_jours).round(2),
-            "Modèle": np.nansum(DJC_mod_jours).round(2),
-            "Différence": (np.nansum(DJC_mod_jours) - np.nansum(DJC_tracc_jours)).round(2)
+            "TRACC": float(np.nansum(DJC_tracc_jours).round(2)),
+            "Modèle": float(np.nansum(DJC_mod_jours).round(2)),
+            "Différence": float(diff_djc.round(2))
         })
         results_djf.append({
             "Mois": mois,
-            "TRACC": np.nansum(DJF_tracc_jours).round(2),
-            "Modèle": np.nansum(DJF_mod_jours).round(2),
-            "Différence": (np.nansum(DJF_mod_jours) - np.nansum(DJF_tracc_jours)).round(2)
+            "TRACC": float(np.nansum(DJF_tracc_jours).round(2)),
+            "Modèle": float(np.nansum(DJF_mod_jours).round(2)),
+            "Différence": float(diff_djf.round(2))
         })
-    
-    # DataFrames
-    df_DJC = pd.DataFrame(results_djc)
-    df_DJF = pd.DataFrame(results_djf)
+        
+        # DataFrames
+        df_DJC = pd.DataFrame(results_djc)
+        df_DJF = pd.DataFrame(results_djf)
+        
+        # Assurer que Différence est float
+        df_DJC["Différence"] = df_DJC["Différence"].astype(float)
+        df_DJF["Différence"] = df_DJF["Différence"].astype(float)
+        
+        # Style safe pour Streamlit
+        st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
+        st.dataframe(
+            df_DJC.style.background_gradient(subset=["Différence"], cmap="bwr", vmin=-50, vmax=50).format("{:.2f}"),
+            hide_index=True
+        )
+        
+        st.subheader("DJF – Refroidissement (somme journalière par mois)")
+        st.dataframe(
+            df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=-50, vmax=50).format("{:.2f}"),
+            hide_index=True
+        )
 
-    
-    # Affichage
-    st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
-    st.dataframe(
-        df_DJC.style.background_gradient(subset=["Différence"], cmap="bwr", vmin=vminDJU, vmax=vmaxDJU).format("{:.2f}"),
-        hide_index=True
-    )
-    
-    st.subheader("DJF – Refroidissement (somme journalière par mois)")
-    st.dataframe(
-        df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=vminDJU, vmax=vmaxDJU).format("{:.2f}"),
-        hide_index=True
-    )
     
     # -----------------------
     # Diagrammes bâtons DJC / DJF
