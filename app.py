@@ -523,52 +523,78 @@ if uploaded:
         st.dataframe(df_diff_styled, hide_index=True)
     
     # ============================
-    #   SECTION DJU / DJC JOURNALIERS
+    # SECTION DJU / DJC journaliers pour TRACC et modèle
     # ============================
-    st.subheader("DJU / DJC journaliers (calculés à partir de Tx et Tn journaliers)")
+    st.subheader("DJU / DJC journaliers (TRACC et Modèle)")
     
-    # Saisie des seuils (une seule fois)
+    # Seuils
     T_base_DJU = float(st.text_input("Base DJU (°C)", "18"))
     T_base_DJC = float(st.text_input("Base DJC (°C)", "26"))
     
-    results_dju = []
-    results_djc = []
+    results_dju_tracc = []
+    results_djc_tracc = []
+    results_dju_mod = []
+    results_djc_mod = []
     
     for mois_num in range(1, 13):
         mois = mois_noms[mois_num]
     
-        Tx_mois = Tx_jour_all[mois_num - 1]
-        Tn_mois = Tn_jour_all[mois_num - 1]
+        # TRACC
+        Tx_tracc = Tx_jour_all[mois_num-1]
+        Tn_tracc = Tn_jour_all[mois_num-1]
+        # Modèle
+        Tx_mod = Tx_jour_mod_all[mois_num-1]
+        Tn_mod = Tn_jour_mod_all[mois_num-1]
     
-        if len(Tx_mois) == 0 or len(Tn_mois) == 0:
-            results_dju.append({"Mois": mois, "DJU mensuel": np.nan})
-            results_djc.append({"Mois": mois, "DJC mensuel": np.nan})
-            continue
+        # Initialisation des listes journalières
+        DJU_tracc_jours = []
+        DJC_tracc_jours = []
+        DJU_mod_jours = []
+        DJC_mod_jours = []
     
-        DJU_jours = []
-        DJC_jours = []
-    
-        for Tx, Tn in zip(Tx_mois, Tn_mois):
+        # --- TRACC ---
+        for Tx, Tn in zip(Tx_tracc, Tn_tracc):
             if np.isnan(Tx) or np.isnan(Tn):
-                DJU_jours.append(np.nan)
-                DJC_jours.append(np.nan)
+                DJU_tracc_jours.append(np.nan)
+                DJC_tracc_jours.append(np.nan)
                 continue
-    
             Tmoy = (Tx + Tn) / 2
-            DJU_jours.append(max(0, T_base_DJU - Tmoy))
-            DJC_jours.append(max(0, Tmoy - T_base_DJC))
+            DJU_tracc_jours.append(max(0, T_base_DJU - Tmoy))
+            DJC_tracc_jours.append(max(0, Tmoy - T_base_DJC))
     
-        results_dju.append({"Mois": mois, "DJU mensuel": np.nansum(DJU_jours)})
-        results_djc.append({"Mois": mois, "DJC mensuel": np.nansum(DJC_jours)})
+        # --- Modèle ---
+        for Tx, Tn in zip(Tx_mod, Tn_mod):
+            if np.isnan(Tx) or np.isnan(Tn):
+                DJU_mod_jours.append(np.nan)
+                DJC_mod_jours.append(np.nan)
+                continue
+            Tmoy = (Tx + Tn) / 2
+            DJU_mod_jours.append(max(0, T_base_DJU - Tmoy))
+            DJC_mod_jours.append(max(0, Tmoy - T_base_DJC))
     
-    df_DJU = pd.DataFrame(results_dju)
-    df_DJC = pd.DataFrame(results_djc)
+        # Sommes mensuelles
+        results_dju_tracc.append({"Mois": mois, "DJU mensuel": np.nansum(DJU_tracc_jours)})
+        results_djc_tracc.append({"Mois": mois, "DJC mensuel": np.nansum(DJC_tracc_jours)})
+        results_dju_mod.append({"Mois": mois, "DJU mensuel": np.nansum(DJU_mod_jours)})
+        results_djc_mod.append({"Mois": mois, "DJC mensuel": np.nansum(DJC_mod_jours)})
     
-    st.subheader("DJU – Moyenne journalière par mois")
-    st.dataframe(df_DJU.round(2), hide_index=True)
+    # DataFrames
+    df_DJU_tracc = pd.DataFrame(results_dju_tracc)
+    df_DJC_tracc = pd.DataFrame(results_djc_tracc)
+    df_DJU_mod = pd.DataFrame(results_dju_mod)
+    df_DJC_mod = pd.DataFrame(results_djc_mod)
     
-    st.subheader("DJC – Moyenne journalière par mois")
-    st.dataframe(df_DJC.round(2), hide_index=True)
+    st.subheader("DJU – Somme mensuelle")
+    st.dataframe(pd.concat([df_DJU_tracc.set_index("Mois"), df_DJU_mod.set_index("Mois")], axis=1, keys=["TRACC","Modèle"]).round(2))
+    
+    st.subheader("DJC – Somme mensuelle")
+    st.dataframe(pd.concat([df_DJC_tracc.set_index("Mois"), df_DJC_mod.set_index("Mois")], axis=1, keys=["TRACC","Modèle"]).round(2))
+    
+    # Somme annuelle
+    st.write("DJU annuel – TRACC :", np.nansum(df_DJU_tracc["DJU mensuel"]))
+    st.write("DJU annuel – Modèle :", np.nansum(df_DJU_mod["DJU mensuel"]))
+    st.write("DJC annuel – TRACC :", np.nansum(df_DJC_tracc["DJC mensuel"]))
+    st.write("DJC annuel – Modèle :", np.nansum(df_DJC_mod["DJC mensuel"]))
 
 
     
