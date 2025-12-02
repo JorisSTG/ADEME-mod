@@ -603,18 +603,19 @@ if uploaded:
     # Affichage tables Streamlit
     # --------------------------
     st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
-    st.dataframe(
-        df_DJC.style.background_gradient(subset=["Différence"], cmap="bwr", vmin=-50, vmax=50).format("{:.2f}"),
-        hide_index=True
-    )
-    
-    st.subheader("DJF – Refroidissement (somme journalière par mois)")
-    st.dataframe(
-        df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=-50, vmax=50).format("{:.2f}"),
-        hide_index=True
+    st.write(
+        df_DJC.style
+            .background_gradient(subset=["Différence"], cmap="bwr", vmin=vminDJU, vmax=vmaxDJU)
+            .format("{:.2f}")
     )
 
-    
+    st.subheader("DJF – Refroidissement (somme journalière par mois)")
+    st.write(
+        df_DJF.style
+            .background_gradient(subset=["Différence"], cmap="bwr_r", vmin=vminDJU, vmax=vmaxDJU)
+            .format("{:.2f}")
+    )
+
     # --------------------------
     # Diagrammes bâtons mensuels
     # --------------------------
