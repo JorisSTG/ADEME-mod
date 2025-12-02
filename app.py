@@ -50,6 +50,9 @@ vminP=0
 vmaxH=100
 vminH=-100
 
+vmaxDJU=150
+vminDJU=-150
+
 # -------- Noms des mois --------
 mois_noms = {
     1: "01 - Janvier",   2: "02 - Février",  3: "03 - Mars",
@@ -574,27 +577,44 @@ if uploaded:
                 DJC_mod_jours.append(max(0, T_base_chauffage - Tm_mod))
                 DJF_mod_jours.append(max(0, Tm_mod - T_base_froid))
     
-        # Somme mensuelle
+        # Somme mensuelle + différence
         results_djc.append({
             "Mois": mois,
             "TRACC": np.nansum(DJC_tracc_jours).round(2),
-            "Modèle": np.nansum(DJC_mod_jours).round(2)
+            "Modèle": np.nansum(DJC_mod_jours).round(2),
+            "Différence": (np.nansum(DJC_mod_jours) - np.nansum(DJC_tracc_jours)).round(2)
         })
         results_djf.append({
             "Mois": mois,
             "TRACC": np.nansum(DJF_tracc_jours).round(2),
-            "Modèle": np.nansum(DJF_mod_jours).round(2)
+            "Modèle": np.nansum(DJF_mod_jours).round(2),
+            "Différence": (np.nansum(DJF_mod_jours) - np.nansum(DJF_tracc_jours)).round(2)
         })
     
     # DataFrames
     df_DJC = pd.DataFrame(results_djc)
     df_DJF = pd.DataFrame(results_djf)
     
+    # Style avec gradient cohérent pour DJC/DJF
+    def style_diff(df, diff_col="Différence", climat="DJC", vmin=vminDJU, vmax=vmaxDJU):
+        """
+        climat : "DJC" ou "DJF"
+        """
+        if climat == "DJC":
+            # Inverser le cmap pour que positif = bleu (plus froid), négatif = rouge (plus chaud)
+            cmap_use = "bwr"
+        else:  # DJF
+            # Positif = rouge (plus chaud), négatif = bleu (plus froid)
+            cmap_use = "bwr_r"
+        return df.style.background_gradient(subset=[diff_col], cmap=cmap_use, vmin=vmin, vmax=vmax).format("{:.2f}")
+    
     st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
-    st.dataframe(df_DJC, hide_index=True)
+    st.dataframe(style_diff(df_DJC, climat="DJC"), hide_index=True)
     
     st.subheader("DJF – Refroidissement (somme journalière par mois)")
-    st.dataframe(df_DJF, hide_index=True)
+    st.dataframe(style_diff(df_DJF, climat="DJF"), hide_index=True)
+
+
     
     # ============================
     # Diagrammes bâtons comparatifs TRACC / Modèle
