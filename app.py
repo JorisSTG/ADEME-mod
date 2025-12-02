@@ -391,7 +391,7 @@ if uploaded:
     # ============================
     #  SECTION: Tn / Tmoy / Tx journaliers
     # ============================
-    st.subheader("Tn_jour / Tmoy_jour / Tx_jour — CDF par mois et tableaux de percentiles")
+    st.subheader("Tn_jour / Tmoy_jour /  — CDF par mois et tableaux de percentiles")
     
     def daily_stats_from_hourly(hourly):
         """
@@ -414,6 +414,10 @@ if uploaded:
     Tx_jour_all = []
     Tn_jour_all = []
     Tm_jour_all = []
+
+    Tx_jour_mod_all = []
+    Tn_jour_mod_all = []
+    Tm_jour_mod_all = []
     
     # boucle mois par mois
     for mois_num in range(1, 13):
@@ -428,10 +432,16 @@ if uploaded:
         # ---- calculer stats journalières ----
         obs_tn, obs_tm, obs_tx = daily_stats_from_hourly(obs_hourly)
         mod_tn, mod_tm, mod_tx = daily_stats_from_hourly(model_hourly)
+        
         # Stocker les séries journalières OBS uniquement
         Tn_jour_all.append(obs_tn)
         Tm_jour_all.append(obs_tm)
         Tx_jour_all.append(obs_tx)
+
+        # Stocker les séries journalières Modèle
+        Tn_jour_mod_all.append(mod_tn)
+        Tm_jour_mod_all.append(mod_tm)
+        Tx_jour_mod_all.append(mod_tx)
     
         # Si pas de données, passer
         if obs_tn.size == 0 or mod_tn.size == 0:
