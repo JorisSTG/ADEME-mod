@@ -580,7 +580,7 @@ if uploaded:
         # Somme mensuelle
         diff_djc = np.nansum(DJC_mod_jours) - np.nansum(DJC_tracc_jours)
         diff_djf = np.nansum(DJF_mod_jours) - np.nansum(DJF_tracc_jours)
-        
+    
         results_djc.append({
             "Mois": mois,
             "TRACC": float(np.nansum(DJC_tracc_jours).round(2)),
@@ -593,51 +593,50 @@ if uploaded:
             "Modèle": float(np.nansum(DJF_mod_jours).round(2)),
             "Différence": float(diff_djf.round(2))
         })
-        
-        # DataFrames
-        df_DJC = pd.DataFrame(results_djc)
-        df_DJF = pd.DataFrame(results_djf)
-        
-        # Assurer que Différence est float
-        df_DJC["Différence"] = df_DJC["Différence"].astype(float)
-        df_DJF["Différence"] = df_DJF["Différence"].astype(float)
-        
-        # Style safe pour Streamlit
-        st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
-        st.dataframe(
-            df_DJC.style.background_gradient(subset=["Différence"], cmap="bwr", vmin=-50, vmax=50).format("{:.2f}"),
-            hide_index=True
-        )
-        
-        st.subheader("DJF – Refroidissement (somme journalière par mois)")
-        st.dataframe(
-            df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=-50, vmax=50).format("{:.2f}"),
-            hide_index=True
-        )
-
     
-    # -----------------------
-    # Diagrammes bâtons DJC / DJF
-    # -----------------------
-    for df, title, color_mod, color_tracc in zip(
-        [df_DJC, df_DJF],
-        ["DJC – Chauffage", "DJF – Refroidissement"],
-        ["red", "red"],
-        ["blue", "blue"]
-    ):
-        fig, ax = plt.subplots(figsize=(12,4))
-        x = np.arange(len(df))
-        ax.bar(x - 0.2, df["TRACC"], width=0.4, label="TRACC", color=color_tracc)
-        ax.bar(x + 0.2, df["Modèle"], width=0.4, label="Modèle", color=color_mod)
-        ax.set_xticks(x)
-        ax.set_xticklabels(df["Mois"], rotation=45)
-        ax.set_ylabel("Somme DJC / DJF")
-        ax.set_title(title)
-        ax.legend()
-        st.pyplot(fig)
-        plt.close(fig)
-
-
+    # DataFrames
+    df_DJC = pd.DataFrame(results_djc)
+    df_DJF = pd.DataFrame(results_djf)
+    
+    # --------------------------
+    # Affichage tables Streamlit
+    # --------------------------
+    st.subheader("DJU / DJC – Chauffage (somme journalière par mois)")
+    st.dataframe(
+        df_DJC.style.background_gradient(subset=["Différence"], cmap="bwr", vmin=-50, vmax=50).format("{:.2f}"),
+        hide_index=True
+    )
+    
+    st.subheader("DJF – Refroidissement (somme journalière par mois)")
+    st.dataframe(
+        df_DJF.style.background_gradient(subset=["Différence"], cmap="bwr_r", vmin=-50, vmax=50).format("{:.2f}"),
+        hide_index=True
+    )
+    
+    # --------------------------
+    # Diagrammes bâtons mensuels
+    # --------------------------
+    st.subheader("Diagrammes bâtons mensuels — DJC et DJF")
+    
+    # DJC
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.bar(df_DJC["Mois"], df_DJC["TRACC"], width=0.4, label="TRACC", color="blue")
+    ax.bar(df_DJC["Mois"], df_DJC["Modèle"], width=0.4, label="Modèle", color="red", alpha=0.7)
+    ax.set_title("DJC – Chauffage mensuel (TRACC vs Modèle)")
+    ax.set_ylabel("Somme DJC (°C·jours)")
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # DJF
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.bar(df_DJF["Mois"], df_DJF["TRACC"], width=0.4, label="TRACC", color="blue")
+    ax.bar(df_DJF["Mois"], df_DJF["Modèle"], width=0.4, label="Modèle", color="red", alpha=0.7)
+    ax.set_title("DJF – Refroidissement mensuel (TRACC vs Modèle)")
+    ax.set_ylabel("Somme DJF (°C·jours)")
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
 
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
