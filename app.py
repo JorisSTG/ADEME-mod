@@ -505,8 +505,13 @@ if uploaded:
             "Diff_Tm_jour": tab["Mod_Tm"] - tab["TRACC_Tm"],
             "Diff_Tx_jour": tab["Mod_Tx"] - tab["TRACC_Tx"],
         })
-    
+        
+        # Redéfinir num_cols_diff avant l'utilisation
+        num_cols_diff = ["Diff_Tn_jour", "Diff_Tm_jour", "Diff_Tx_jour"]
+        
+        # Convertir en float + arrondir
         df_diff[num_cols_diff] = df_diff[num_cols_diff].apply(pd.to_numeric, errors="coerce").round(2)
+
     
         st.write(f"{mois} — Différences Modèle - TRACC (Tn_jour / Tmoy_jour / Tx_jour)")
     
