@@ -619,6 +619,7 @@ if uploaded:
             .background_gradient(subset=["Différence"], cmap="bwr_r", vmin=vminDJU, vmax=vmaxDJU)
             .format("{:.2f}")
     )
+
     
     # --------------------------
     # Diagrammes bâtons mensuels
