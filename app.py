@@ -550,9 +550,6 @@ if uploaded:
         for mois_num in range(1, 13):
             mois = mois_noms[mois_num]
         
-            # Récupération des séries journalières calculées dans la section Tn/Tm/Tx
-            Tx_mois = Tx_jour_all[mois_num - 1]
-            Tn_mois = Tn_jour_all[mois_num - 1]
         
             if len(Tx_mois) == 0:
                 results_dju.append({"Mois": mois, "DJU mensuel": np.nan})
