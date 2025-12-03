@@ -592,6 +592,81 @@ if uploaded:
             .format({col: "{:.2f}" for col in ["Diff_Tn_jour","Diff_Tm_jour","Diff_Tx_jour"]})
         )
         st.dataframe(df_diff_styled, hide_index=True)
+
+    # ============================
+    # GRAPHIQUES : Jours chauds et nuits tropicales par mois
+    # ============================
+
+    st.subheader("Graphiques : jours chauds et nuits tropicales par mois")
+    
+    # Choix seuil pour Tx
+    tx_seuil = st.number_input("Seuil Tx_jour (°C) pour jours chauds :", min_value=-50.0, max_value=60.0, value=30.0, step=1.0)
+    tn_seuil = 20.0  # seuil fixe pour nuits tropicales
+    
+    # Préparer listes pour stocker les valeurs par mois
+    jours_chauds_tracc = []
+    jours_chauds_modele = []
+    nuits_tropicales_tracc = []
+    nuits_tropicales_modele = []
+    
+    jours_chauds_total_tracc = 0
+    jours_chauds_total_modele = 0
+    nuits_tropicales_total_tracc = 0
+    nuits_tropicales_total_modele = 0
+    
+    for mois_num in range(1, 13):
+        # TRACC
+        obs_tx_jour = Tx_jour_all[mois_num - 1]
+        obs_tn_jour = Tn_jour_all[mois_num - 1]
+        jours_tx = np.sum(obs_tx_jour > tx_seuil)
+        nuits_trop = np.sum(obs_tn_jour > tn_seuil)
+        jours_chauds_tracc.append(jours_tx)
+        nuits_tropicales_tracc.append(nuits_trop)
+        jours_chauds_total_tracc += jours_tx
+        nuits_tropicales_total_tracc += nuits_trop
+    
+        # Modèle
+        mod_tx_jour = Tx_jour_mod_all[mois_num - 1]
+        mod_tn_jour = Tn_jour_mod_all[mois_num - 1]
+        jours_tx_mod = np.sum(mod_tx_jour > tx_seuil)
+        nuits_trop_mod = np.sum(mod_tn_jour > tn_seuil)
+        jours_chauds_modele.append(jours_tx_mod)
+        nuits_tropicales_modele.append(nuits_trop_mod)
+        jours_chauds_total_modele += jours_tx_mod
+        nuits_tropicales_total_modele += nuits_trop_mod
+    
+    # Labels pour les mois
+    mois_labels = [mois_noms[m] for m in range(1, 13)]
+    x = np.arange(len(mois_labels))
+    
+    # ---- Diagramme jours chauds ----
+    fig, ax = plt.subplots(figsize=(14, 4))
+    ax.bar(x - 0.2, jours_chauds_tracc, width=0.4, color=couleur_TRACC, label="TRACC")
+    ax.bar(x + 0.2, jours_chauds_modele, width=0.4, color=couleur_modele, label="Modèle")
+    ax.set_xticks(x)
+    ax.set_xticklabels(mois_labels, rotation=45)
+    ax.set_ylabel(f"Nombre de jours Tx_jour > {tx_seuil}°C")
+    ax.set_title("Jours chauds par mois")
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # ---- Diagramme nuits tropicales ----
+    fig, ax = plt.subplots(figsize=(14, 4))
+    ax.bar(x - 0.2, nuits_tropicales_tracc, width=0.4, color=couleur_TRACC, label="TRACC")
+    ax.bar(x + 0.2, nuits_tropicales_modele, width=0.4, color=couleur_modele, label="Modèle")
+    ax.set_xticks(x)
+    ax.set_xticklabels(mois_labels, rotation=45)
+    ax.set_ylabel(f"Nombre de nuits Tn_jour > {tn_seuil}°C")
+    ax.set_title("Nuits tropicales par mois")
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # ---- Affichage des totaux ----
+    st.markdown(f"**Total jours chauds TRACC :** {jours_chauds_total_tracc}, **Modèle :** {jours_chauds_total_modele}")
+    st.markdown(f"**Total nuits tropicales TRACC :** {nuits_tropicales_total_tracc}, **Modèle :** {nuits_tropicales_total_modele}")
+
     
    
     # ============================
