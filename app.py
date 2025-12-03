@@ -313,7 +313,8 @@ if uploaded:
            label=f"TRACC +{scenario_sel}/{ville_sel}", color=couleur_TRACC)
     ax.bar(df_plot_year["Temp_Num"] + 0.2, df_plot_year["Modèle"], width=0.4,
            label="Modèle", color=couleur_modele)
-    
+
+    fig_hist_year = fig
     ax.set_title("Année entière - Durée en heures par seuil de température")
     ax.set_xlabel("Température (°C)")
     ax.set_ylabel("Durée en heure")
@@ -416,6 +417,8 @@ if uploaded:
     ax.set_ylabel("Température (°C)")
     ax.tick_params(axis='x', rotation=45)
     ax.legend(facecolor="black")
+
+    fig_tn_tx_mois = fig
     
     st.pyplot(fig)
     plt.close(fig)
@@ -686,16 +689,25 @@ if uploaded:
     # -----------------------------
     # Diagrammes en bâtons par mois
     # -----------------------------
+    figures = {}   # dictionnaire où on stocke les figures
+
     for df, titre in zip([df_DJC, df_DJF], ["DJC", "DJF"]):
         fig, ax = plt.subplots(figsize=(14, 4))
-        ax.bar(df.index - 0.2, df["TRACC"], width=0.4, color=couleur_TRACC, label="TRACC")
-        ax.bar(df.index + 0.2, df["Modèle"], width=0.4, color=couleur_modele, label="Modèle")
+        ax.bar(df.index - 0.2, df["TRACC"], width=0.4,
+               color=couleur_TRACC, label="TRACC")
+        ax.bar(df.index + 0.2, df["Modèle"], width=0.4,
+               color=couleur_modele, label="Modèle")
+    
         ax.set_xticks(df.index)
         ax.set_xticklabels(df["Mois"])
         ax.set_title(f"{titre} mensuel — Modèle vs TRACC")
         ax.set_ylabel(f"{titre} (°C·jour)")
         ax.set_xlabel("Mois")
         ax.legend()
+    
+        # 🔥 enregistrer la figure dans le dictionnaire
+        figures[titre] = fig
+    
         st.pyplot(fig)
         plt.close(fig)
 
@@ -1014,7 +1026,8 @@ if uploaded:
     
     def create_pdf(
         df_rmse, df_temp_precision,
-        fig_hist_year, fig_tstats, fig_cdf
+        fig_hist_year, fig_tstats, fig_cdf,
+        fig_DJC, fig_DJF
     ):
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
@@ -1043,32 +1056,44 @@ if uploaded:
         img1 = BytesIO()
         fig_hist_year.savefig(img1, format="png", dpi=150)
         img1.seek(0)
-    
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Histogramme annuel")
-    
         c.drawImage(img1, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
         c.showPage()
     
-        # --- PAGE 3 : Courbes DJC/DJF (Tn/Tmoy/Tx mensuelles) ---
+        # --- PAGE 3 : Courbes Tn/Tmoy/Tx mensuelles ---
         img2 = BytesIO()
         fig_tstats.savefig(img2, format="png", dpi=150)
         img2.seek(0)
-    
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Évolution mensuelle : Tn / Tmoy / Tx")
-    
         c.drawImage(img2, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
         c.showPage()
     
-        # --- PAGE 4 : CDF annuelle ---
+        # --- PAGE 4 : DJC ---
+        img_DJC = BytesIO()
+        fig_DJC.savefig(img_DJC, format="png", dpi=150)
+        img_DJC.seek(0)
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(2*cm, 27*cm, "Évolution DJC")
+        c.drawImage(img_DJC, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.showPage()
+    
+        # --- PAGE 5 : DJF ---
+        img_DJF = BytesIO()
+        fig_DJF.savefig(img_DJF, format="png", dpi=150)
+        img_DJF.seek(0)
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(2*cm, 27*cm, "Évolution DJF")
+        c.drawImage(img_DJF, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.showPage()
+    
+        # --- PAGE 6 : CDF annuelle ---
         img3 = BytesIO()
         fig_cdf.savefig(img3, format="png", dpi=150)
         img3.seek(0)
-    
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Répartition CDF annuelle")
-    
         c.drawImage(img3, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
         c.showPage()
     
@@ -1076,25 +1101,26 @@ if uploaded:
         buffer.seek(0)
         return buffer
     
-    
     # -----------------------------------------------------------
     # BOUTON TÉLÉCHARGER LE PDF
     # -----------------------------------------------------------
     st.subheader("Téléchargement du rapport PDF")
     
     if st.button("📄 Télécharger le PDF résumé"):
+    
         pdf_buffer = create_pdf(
             df_rmse=df_rmse,
             df_temp_precision=df_temp_precision,
-            fig_hist_year=fig,      # histogramme annuel déjà calculé plus haut
-            fig_tstats=fig,         # remplacer par figure Tn/Tmoy/Tx si nommée différemment
-            fig_cdf=fig             # remplacer par ta figure CDF annuelle
+            fig_hist_year=fig_hist_year,
+            fig_tstats=fig_tn_tx_mois,
+            fig_cdf=fig_cdf,
+            fig_DJC=figures["DJC"],
+            fig_DJF=figures["DJF"]
         )
+    
         st.download_button(
             label="Télécharger le PDF",
             data=pdf_buffer,
             file_name=f"rapport_{scenario_sel}_{ville_sel}.pdf",
             mime="application/pdf"
         )
-
-
