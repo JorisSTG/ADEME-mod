@@ -1015,14 +1015,11 @@ if uploaded:
         st.dataframe(df_pivot.style.background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
 
 
-    # -----------------------------------------------------------
-    # BLOC : Génération du PDF
-    # À placer après tous les graphiques (juste avant la fin du if uploaded:)
-    # -----------------------------------------------------------
     from io import BytesIO
     from reportlab.lib.pagesizes import A4
     from reportlab.pdfgen import canvas
     from reportlab.lib.units import cm
+    from reportlab.lib.utils import ImageReader  
     
     def create_pdf(
         df_rmse, df_temp_precision,
@@ -1032,12 +1029,10 @@ if uploaded:
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
         
-        # --- FOND NOIR ---
-        c.setFillColorRGB(0, 0, 0)  # fond noir
-        c.rect(0, 0, A4[0], A4[1], stroke=0, fill=1)
-        
         # --- PAGE 1 : Tableaux de précision ---
-        c.setFillColorRGB(1,1,1)  # texte blanc
+        c.setFillColorRGB(0,0,0)
+        c.rect(0, 0, A4[0], A4[1], stroke=0, fill=1)  # fond noir
+        c.setFillColorRGB(1,1,1)
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Résumé - Précision du modèle")
     
@@ -1057,7 +1052,7 @@ if uploaded:
         c.drawText(text)
         c.showPage()
     
-        # --- Pages figures ---
+        # --- PAGES FIGURES ---
         for fig, title in zip(
             [fig_hist_year, fig_tstats, fig_cdf, fig_DJC, fig_DJF],
             ["Histogramme annuel", "Évolution mensuelle : Tn / Tmoy / Tx", 
@@ -1065,18 +1060,23 @@ if uploaded:
         ):
             if fig is None:
                 continue
-            img = BytesIO()
-            fig.savefig(img, format="png", dpi=150, facecolor='black')  # fond noir
-            img.seek(0)
+            img_buf = BytesIO()
+            fig.savefig(img_buf, format="png", dpi=150, facecolor='black')  # fond noir
+            img_buf.seek(0)
+            img_reader = ImageReader(img_buf)  # <-- convertit BytesIO pour drawImage
+    
+            c.setFillColorRGB(0,0,0)
+            c.rect(0, 0, A4[0], A4[1], stroke=0, fill=1)
             c.setFillColorRGB(1,1,1)
             c.setFont("Helvetica-Bold", 16)
             c.drawString(2*cm, 27*cm, title)
-            c.drawImage(img, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+            c.drawImage(img_reader, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
             c.showPage()
     
         c.save()
         buffer.seek(0)
         return buffer
+
 
     # -----------------------------------------------------------
     # BOUTON TÉLÉCHARGER LE PDF
