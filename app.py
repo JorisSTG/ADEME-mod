@@ -1103,4 +1103,27 @@ if uploaded:
             mime="application/pdf"
         )
 
+    st.subheader("Résumé des figures")
+
+    # --- Histogramme annuel ---
+    st.pyplot(fig_hist_year)
+    st.text_area("Commentaires (Histogramme annuel)", "", height=50)
+    
+    # --- Tn/Tmoy/Tx mensuelles ---
+    st.pyplot(fig_tn_tx_mois)
+    st.text_area("Commentaires (Tn/Tmoy/Tx)", "", height=50)
+    
+    # --- CDF annuelle ---
+    st.pyplot(fig_cdf)
+    st.text_area("Commentaires (CDF annuelle)", "", height=50)
+    
+    # --- DJC ---
+    st.pyplot(figures["DJC"])
+    st.text_area("Commentaires (DJC)", "", height=50)
+    
+    # --- DJF ---
+    st.pyplot(figures["DJF"])
+    st.text_area("Commentaires (DJF)", "", height=50)
+
+
 
