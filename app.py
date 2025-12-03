@@ -648,6 +648,7 @@ if uploaded:
     ax.set_ylabel(f"Nombre de jours Tx_jour > {tx_seuil}°C")
     ax.set_title("Jours chauds par mois")
     ax.legend()
+    fig_jourschaud=fig
     st.pyplot(fig)
     plt.close(fig)
     
@@ -660,6 +661,7 @@ if uploaded:
     ax.set_ylabel(f"Nombre de nuits Tn_jour > {tn_seuil}°C")
     ax.set_title("Nuits tropicales par mois")
     ax.legend()
+    fig_nuittrop=fig
     st.pyplot(fig)
     plt.close(fig)
     
@@ -1115,6 +1117,12 @@ if uploaded:
     # --- Tn/Tmoy/Tx mensuelles ---
     st.pyplot(fig_tn_tx_mois)
     st.markdown("**Commentaires Tn/Tmoy/Tx :** ")  # zone à compléter manuellement ou automatiquement plus tard
+
+    st.pyplot(fig_jourschaud)
+    st.markdown("**Commentaires jours chauds :** ")
+    
+    st.pyplot(fig_nuittrop)
+    st.markdown("**Commentaires nuits tropicales :** ")
     
     # --- CDF annuelle ---
     st.pyplot(fig_cdf)
@@ -1127,6 +1135,7 @@ if uploaded:
     # --- DJF ---
     st.pyplot(figures["DJF"])
     st.markdown("**Commentaires DJF :** ")  # zone à compléter
+
 
 
 
