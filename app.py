@@ -1024,10 +1024,19 @@ if uploaded:
     from reportlab.pdfgen import canvas
     from reportlab.lib.units import cm
     
+    # -----------------------------------------------------------
+    # BLOC : Génération du PDF
+    # -----------------------------------------------------------
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.units import cm
+    from reportlab.lib.utils import ImageReader
+    
     def create_pdf(
         df_rmse, df_temp_precision,
         fig_hist_year, fig_tstats, fig_cdf,
-        fig_DJC, fig_DJF
+        fig_DJC=None, fig_DJF=None
     ):
         buffer = BytesIO()
         c = canvas.Canvas(buffer, pagesize=A4)
@@ -1056,71 +1065,60 @@ if uploaded:
         img1 = BytesIO()
         fig_hist_year.savefig(img1, format="png", dpi=150)
         img1.seek(0)
+        img1_reader = ImageReader(img1)
+    
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Histogramme annuel")
-        c.drawImage(img1, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.drawImage(img1_reader, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
         c.showPage()
     
-        # --- PAGE 3 : Courbes Tn/Tmoy/Tx mensuelles ---
+        # --- PAGE 3 : Courbes mensuelles Tn/Tmoy/Tx ---
         img2 = BytesIO()
         fig_tstats.savefig(img2, format="png", dpi=150)
         img2.seek(0)
+        img2_reader = ImageReader(img2)
+    
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Évolution mensuelle : Tn / Tmoy / Tx")
-        c.drawImage(img2, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.drawImage(img2_reader, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
         c.showPage()
     
-        # --- PAGE 4 : DJC ---
-        img_DJC = BytesIO()
-        fig_DJC.savefig(img_DJC, format="png", dpi=150)
-        img_DJC.seek(0)
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(2*cm, 27*cm, "Évolution DJC")
-        c.drawImage(img_DJC, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
-        c.showPage()
-    
-        # --- PAGE 5 : DJF ---
-        img_DJF = BytesIO()
-        fig_DJF.savefig(img_DJF, format="png", dpi=150)
-        img_DJF.seek(0)
-        c.setFont("Helvetica-Bold", 16)
-        c.drawString(2*cm, 27*cm, "Évolution DJF")
-        c.drawImage(img_DJF, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
-        c.showPage()
-    
-        # --- PAGE 6 : CDF annuelle ---
+        # --- PAGE 4 : CDF annuelle ---
         img3 = BytesIO()
         fig_cdf.savefig(img3, format="png", dpi=150)
         img3.seek(0)
+        img3_reader = ImageReader(img3)
+    
         c.setFont("Helvetica-Bold", 16)
         c.drawString(2*cm, 27*cm, "Répartition CDF annuelle")
-        c.drawImage(img3, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.drawImage(img3_reader, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
         c.showPage()
+    
+        # --- PAGE 5 : DJC (optionnel) ---
+        if fig_DJC is not None:
+            img4 = BytesIO()
+            fig_DJC.savefig(img4, format="png", dpi=150)
+            img4.seek(0)
+            img4_reader = ImageReader(img4)
+    
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(2*cm, 27*cm, "Évolution mensuelle : DJC")
+            c.drawImage(img4_reader, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+            c.showPage()
+    
+        # --- PAGE 6 : DJF (optionnel) ---
+        if fig_DJF is not None:
+            img5 = BytesIO()
+            fig_DJF.savefig(img5, format="png", dpi=150)
+            img5.seek(0)
+            img5_reader = ImageReader(img5)
+    
+            c.setFont("Helvetica-Bold", 16)
+            c.drawString(2*cm, 27*cm, "Évolution mensuelle : DJF")
+            c.drawImage(img5_reader, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+            c.showPage()
     
         c.save()
         buffer.seek(0)
         return buffer
-    
-    # -----------------------------------------------------------
-    # BOUTON TÉLÉCHARGER LE PDF
-    # -----------------------------------------------------------
-    st.subheader("Téléchargement du rapport PDF")
-    
-    if st.button("📄 Télécharger le PDF résumé"):
-    
-        pdf_buffer = create_pdf(
-            df_rmse=df_rmse,
-            df_temp_precision=df_temp_precision,
-            fig_hist_year=fig_hist_year,
-            fig_tstats=fig_tn_tx_mois,
-            fig_cdf=fig_cdf,
-            fig_DJC=figures["DJC"],
-            fig_DJF=figures["DJF"]
-        )
-    
-        st.download_button(
-            label="Télécharger le PDF",
-            data=pdf_buffer,
-            file_name=f"rapport_{scenario_sel}_{ville_sel}.pdf",
-            mime="application/pdf"
-        )
+
