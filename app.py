@@ -600,8 +600,8 @@ if uploaded:
     st.subheader("Graphiques : jours chauds et nuits tropicales par mois")
     
     # Choix seuil pour Tx
-    tx_seuil = st.number_input("Seuil Tx_jour (°C) pour jours chauds :", min_value=-50.0, max_value=60.0, value=30.0, step=1.0)
-    tn_seuil = 20.0  # seuil fixe pour nuits tropicales
+    tx_seuil = st.number_input("Seuil Tx_jour (°C) pour jours chauds :", min_value=-50.0, max_value=60.0, value=30, step=1.0)
+    tn_seuil = st.number_input("Seuil Tn_jour (°C) pour nuits tropicales :", min_value=-50.0, max_value=60.0, value=20, step=1.0) # seuil fixe pour nuits tropicales
     
     # Préparer listes pour stocker les valeurs par mois
     jours_chauds_tracc = []
