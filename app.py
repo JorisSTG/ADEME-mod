@@ -261,8 +261,8 @@ if uploaded:
         
         # Création du plot
         fig, ax = plt.subplots(figsize=(14, 4))
-        ax.bar(df_plot["Temp_Num"] - 0.2, df_plot["TRACC"], width=0.4, label=f"TRACC +{scenario_sel}/{ville_sel}", color=color_TRACC)
-        ax.bar(df_plot["Temp_Num"] + 0.2, df_plot["Modèle"], width=0.4, label="Modèle", color=color_modele)
+        ax.bar(df_plot["Temp_Num"] - 0.2, df_plot["TRACC"], width=0.4, label=f"TRACC +{scenario_sel}/{ville_sel}", color=couleur_TRACC)
+        ax.bar(df_plot["Temp_Num"] + 0.2, df_plot["Modèle"], width=0.4, label="Modèle", color=couleur_modele)
         ax.set_title(f"{mois} - Durée en heure par seuil de température")
         ax.set_xlabel("Température (°C)")
         ax.set_ylabel("Durée en heure")
@@ -635,8 +635,8 @@ if uploaded:
     # -----------------------------
     for df, titre in zip([df_DJC, df_DJF], ["DJC", "DJF"]):
         fig, ax = plt.subplots(figsize=(14, 4))
-        ax.bar(df.index - 0.2, df["TRACC"], width=0.4, color=color_TRACC, label="TRACC")
-        ax.bar(df.index + 0.2, df["Modèle"], width=0.4, color=color_modele, label="Modèle")
+        ax.bar(df.index - 0.2, df["TRACC"], width=0.4, color=couleur_TRACC, label="TRACC")
+        ax.bar(df.index + 0.2, df["Modèle"], width=0.4, color=couleur_modele, label="Modèle")
         ax.set_xticks(df.index)
         ax.set_xticklabels(df["Mois"])
         ax.set_title(f"{titre} mensuel — Modèle vs TRACC")
@@ -734,8 +734,8 @@ if uploaded:
         mod_percentiles_100 = np.percentile(mod_mois, np.linspace(0, 100, 100))
 
         fig, ax = plt.subplots(figsize=(12, 4))
-        ax.plot(np.linspace(0, 100, 100), mod_percentiles_100, label="Modèle", color=color_modele)
-        ax.plot(np.linspace(0, 100, 100), obs_percentiles_100, label=f"TRACC +{scenario_sel}/{ville_sel}", color=color_TRACC)
+        ax.plot(np.linspace(0, 100, 100), mod_percentiles_100, label="Modèle", color=couleur_modele)
+        ax.plot(np.linspace(0, 100, 100), obs_percentiles_100, label=f"TRACC +{scenario_sel}/{ville_sel}", color=couleur_TRACC)
         ax.set_title(f"{mois} - Fonction de répartition", color="white")
         ax.set_xlabel("Percentile", color="white")
         ax.set_ylabel("Température (°C)", color="white")
