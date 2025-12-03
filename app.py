@@ -816,6 +816,47 @@ if uploaded:
                 "Mod": mod_p[i]
             })
 
+    # -------- Fonction de répartition ANNUELLE --------
+    st.subheader("Fonction de répartition annuelle (CDF)")
+    
+    # Regroupement annuel
+    obs_annual = np.concatenate(obs_mois_all)         # Observations TRACC - toutes les heures de l'année
+    mod_annual = model_values                         # Modèle : déjà toutes les heures
+    
+    # Percentiles pour CDF (0–100)
+    percentiles_cdf = np.linspace(0, 100, 100)
+    obs_percentiles_annual = np.percentile(obs_annual, percentiles_cdf)
+    mod_percentiles_annual = np.percentile(mod_annual, percentiles_cdf)
+    
+    # ----- Plot de la CDF annuelle -----
+    fig, ax = plt.subplots(figsize=(12, 4))
+    ax.plot(percentiles_cdf, mod_percentiles_annual, label="Modèle", color=couleur_modele)
+    ax.plot(percentiles_cdf, obs_percentiles_annual, label=f"TRACC +{scenario_sel}/{ville_sel}", color=couleur_TRACC)
+    
+    ax.set_title("Année entière - Fonction de répartition", color="white")
+    ax.set_xlabel("Percentile", color="white")
+    ax.set_ylabel("Température (°C)", color="white")
+    ax.tick_params(colors="white")
+    ax.legend(facecolor="black")
+    ax.set_facecolor("none")
+    
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # ------ Tableau des percentiles annuels ------
+    obs_p_annual = np.percentile(obs_annual, percentiles_list)
+    mod_p_annual = np.percentile(mod_annual, percentiles_list)
+    
+    df_p_annual = pd.DataFrame({
+        "Percentile": [f"P{p}" for p in percentiles_list],
+        f"TRACC +{scenario_sel}/{ville_sel}": obs_p_annual,
+        "Modèle": mod_p_annual
+    }).round(2)
+    
+    st.write("Année entière - Percentiles")
+    st.dataframe(df_p_annual, hide_index=True)
+
+
     st.subheader(f"Bilan modèle vs TRACC +{scenario_sel}/{ville_sel} (Modèle - TRACC)") 
     # Création du DataFrame
     df_bilan = pd.DataFrame(df_percentiles_all).round(2)
