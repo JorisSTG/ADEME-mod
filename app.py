@@ -1019,17 +1019,24 @@ if uploaded:
     
     # --- Histogramme annuel ---
     st.pyplot(fig_hist_year)
+
+    # --- Affichage du tableau RMSE et précision ---
+    st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
+    st.markdown(
+        """
+        La précision est calculée à partir de la moyenne des différences absolues entre les percentiles du modèle et ceux de la TRACC (c’est-à-dire le RMSE), ainsi que de l’écart-type du mois de référence issu des données TRACC.
+        """,
+        unsafe_allow_html=True
+    )
+    st.dataframe(df_rmse_styled, hide_index=True)
     
     # Résumé automatique de la précision mensuelle à partir de df_rmse
-    resume_precision = []
-    for mois, pct in zip(df_rmse["Mois"], df_rmse["Précision percentile (%)"]):
-        if pct < 60:
-            resume_precision.append(f"{mois} : pas précis")
-        else:
-            resume_precision.append(f"{mois} : précis")
+    # --- Résumé automatique de la précision ---
+    mois_pas_precis = [mois for mois, pct in zip(df_rmse["Mois"], df_rmse["Précision percentile (%)"]) if pct < 60]
     
-    st.markdown("**Résumé Précision Mensuelle :** " + ", ".join(resume_precision))
-    
+    if mois_pas_precis:
+        st.markdown("**Mois avec une mauvaise précision :** " + ", ".join(mois_pas_precis))
+
     # --- Tn/Tmoy/Tx mensuelles ---
     st.pyplot(fig_tn_tx_mois)
     st.markdown("**Commentaires Tn/Tmoy/Tx :** ")  # zone à compléter manuellement ou automatiquement plus tard
