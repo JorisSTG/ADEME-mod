@@ -840,6 +840,8 @@ if uploaded:
     ax.legend(facecolor="black")
     ax.set_facecolor("none")
     
+    fig_cdf = fig
+    
     st.pyplot(fig)
     plt.close(fig)
     
@@ -999,4 +1001,100 @@ if uploaded:
         df_pivot = df_ecart.pivot(index="Scénario", columns="Mois", values="Ecart").round(2)
         st.write(f"Percentile {p} : Modèle - TRACC/{ville_sel}")
         st.dataframe(df_pivot.style.background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
+
+
+    # -----------------------------------------------------------
+    # BLOC : Génération du PDF
+    # À placer après tous les graphiques (juste avant la fin du if uploaded:)
+    # -----------------------------------------------------------
+    from io import BytesIO
+    from reportlab.lib.pagesizes import A4
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.units import cm
+    
+    def create_pdf(
+        df_rmse, df_temp_precision,
+        fig_hist_year, fig_tstats, fig_cdf
+    ):
+        buffer = BytesIO()
+        c = canvas.Canvas(buffer, pagesize=A4)
+    
+        # --- PAGE 1 : Tableaux de précision ---
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(2*cm, 27*cm, "Résumé - Précision du modèle")
+    
+        c.setFont("Helvetica", 12)
+        c.drawString(2*cm, 25.5*cm, "Tableau 1 : RMSE + Précision percentile")
+        text = c.beginText(2*cm, 24.5*cm)
+        text.setFont("Helvetica", 9)
+        for line in df_rmse.to_string(index=False).split("\n"):
+            text.textLine(line)
+        c.drawText(text)
+    
+        c.drawString(2*cm, 13.5*cm, "Tableau 2 : Précision histogrammes")
+        text = c.beginText(2*cm, 12.5*cm)
+        text.setFont("Helvetica", 9)
+        for line in df_temp_precision.to_string(index=False).split("\n"):
+            text.textLine(line)
+        c.drawText(text)
+        c.showPage()
+    
+        # --- PAGE 2 : Histogramme annuel ---
+        img1 = BytesIO()
+        fig_hist_year.savefig(img1, format="png", dpi=150)
+        img1.seek(0)
+    
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(2*cm, 27*cm, "Histogramme annuel")
+    
+        c.drawImage(img1, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.showPage()
+    
+        # --- PAGE 3 : Courbes DJC/DJF (Tn/Tmoy/Tx mensuelles) ---
+        img2 = BytesIO()
+        fig_tstats.savefig(img2, format="png", dpi=150)
+        img2.seek(0)
+    
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(2*cm, 27*cm, "Évolution mensuelle : Tn / Tmoy / Tx")
+    
+        c.drawImage(img2, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.showPage()
+    
+        # --- PAGE 4 : CDF annuelle ---
+        img3 = BytesIO()
+        fig_cdf.savefig(img3, format="png", dpi=150)
+        img3.seek(0)
+    
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(2*cm, 27*cm, "Répartition CDF annuelle")
+    
+        c.drawImage(img3, 2*cm, 9*cm, width=16*cm, preserveAspectRatio=True)
+        c.showPage()
+    
+        c.save()
+        buffer.seek(0)
+        return buffer
+    
+    
+    # -----------------------------------------------------------
+    # BOUTON TÉLÉCHARGER LE PDF
+    # -----------------------------------------------------------
+    st.subheader("Téléchargement du rapport PDF")
+    
+    if st.button("📄 Télécharger le PDF résumé"):
+        pdf_buffer = create_pdf(
+            df_rmse=df_rmse,
+            df_temp_precision=df_temp_precision,
+            fig_hist_year=fig,      # histogramme annuel déjà calculé plus haut
+            fig_tstats=fig,         # remplacer par figure Tn/Tmoy/Tx si nommée différemment
+            fig_cdf=fig             # remplacer par ta figure CDF annuelle
+        )
+        st.download_button(
+            label="Télécharger le PDF",
+            data=pdf_buffer,
+            file_name=f"rapport_{scenario_sel}_{ville_sel}.pdf",
+            mime="application/pdf"
+        )
+
 
