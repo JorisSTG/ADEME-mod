@@ -4,5 +4,6 @@ xarray
 netCDF4
 numpy
 matplotlib
-spicy
+scipy
 seaborn
+reportlab
