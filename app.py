@@ -1122,3 +1122,29 @@ if uploaded:
         buffer.seek(0)
         return buffer
 
+    # -----------------------------------------------------------
+    # BOUTON TÉLÉCHARGER LE PDF
+    # -----------------------------------------------------------
+    st.subheader("Téléchargement du rapport PDF")
+    
+    if st.button("📄 Télécharger le PDF résumé"):
+        
+        # créer le PDF en passant les figures
+        pdf_buffer = create_pdf(
+            df_rmse=df_rmse,
+            df_temp_precision=df_temp_precision,
+            fig_hist_year=fig_hist_year,      # histogramme annuel
+            fig_tstats=fig_tn_tx_mois,        # figure Tn/Tmoy/Tx
+            fig_cdf=fig_cdf,                  # figure CDF annuelle
+            fig_DJC=figures.get("DJC"),       # figure DJC (optionnelle)
+            fig_DJF=figures.get("DJF")        # figure DJF (optionnelle)
+        )
+        
+        st.download_button(
+            label="Télécharger le PDF",
+            data=pdf_buffer,
+            file_name=f"rapport_{scenario_sel}_{ville_sel}.pdf",
+            mime="application/pdf"
+        )
+
+
