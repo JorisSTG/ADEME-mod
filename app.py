@@ -270,6 +270,59 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
+    # -------- Histogramme annuel par plage de température --------
+    st.subheader(f"Histogramme annuel : Modèle et TRACC +{scenario_sel}/{ville_sel}")
+    st.markdown(
+        """
+        La valeur de chaque barre est égale au total d'heures compris entre [ X°C , X+1°C [
+        sur l'année entière.
+        """,
+        unsafe_allow_html=True
+    )
+    
+    # Bins correspondant à [X, X+1[
+    bin_edges = np.arange(-5, 46, 1)
+    bin_labels = bin_edges[:-1].astype(int)
+    
+    def count_hours_in_bins(temp_hourly, bins):
+        counts, _ = np.histogram(temp_hourly, bins=bins)
+        return counts
+    
+    # -------- Regroupement ANNUEL --------
+    # Observations : concaténer tous les mois
+    obs_hourly_annual = np.concatenate(obs_mois_all)
+    
+    # Modèle : toutes les valeurs de l'année
+    mod_hourly_annual = model_values  # déjà une série horaire complète
+    
+    # Comptages annuels
+    obs_counts_annual = count_hours_in_bins(obs_hourly_annual, bin_edges)
+    mod_counts_annual = count_hours_in_bins(mod_hourly_annual, bin_edges)
+    
+    # Préparer DataFrame pour le plot
+    df_plot_year = pd.DataFrame({
+        "Temp_Num": bin_labels,
+        "Température": bin_labels.astype(str),
+        "TRACC": obs_counts_annual,
+        "Modèle": mod_counts_annual
+    }).sort_values("Temp_Num")
+    
+    # Plot
+    fig, ax = plt.subplots(figsize=(16, 5))
+    ax.bar(df_plot_year["Temp_Num"] - 0.2, df_plot_year["TRACC"], width=0.4,
+           label=f"TRACC +{scenario_sel}/{ville_sel}", color=couleur_TRACC)
+    ax.bar(df_plot_year["Temp_Num"] + 0.2, df_plot_year["Modèle"], width=0.4,
+           label="Modèle", color=couleur_modele)
+    
+    ax.set_title("Année entière - Durée en heures par seuil de température")
+    ax.set_xlabel("Température (°C)")
+    ax.set_ylabel("Durée en heure")
+    ax.legend()
+    
+    st.pyplot(fig)
+    plt.close(fig)
+
+
 
     # -------- Précision par créneau horaire --------
     results_temp = []
