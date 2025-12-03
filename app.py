@@ -1107,23 +1107,35 @@ if uploaded:
 
     # --- Histogramme annuel ---
     st.pyplot(fig_hist_year)
-    st.text_area("Commentaires (Histogramme annuel)", "", height=50)
+    
+    # Exemple de résumé automatique pour la précision mensuelle
+    precision_mensuelle = df_temp_precision["Précision"]  # colonne avec 12 valeurs, une par mois
+    mois = df_temp_precision["Mois"]                     # noms des mois correspondants
+    resume_precision = []
+    
+    for m, val in zip(mois, precision_mensuelle):
+        if val < 60:
+            resume_precision.append(f"{m} : pas précis")
+        else:
+            resume_precision.append(f"{m} : précis")
+    
+    st.markdown("**Résumé Précision Mensuelle :** " + ", ".join(resume_precision))
     
     # --- Tn/Tmoy/Tx mensuelles ---
     st.pyplot(fig_tn_tx_mois)
-    st.text_area("Commentaires (Tn/Tmoy/Tx)", "", height=50)
+    st.markdown("**Commentaires Tn/Tmoy/Tx :** ")  # tu pourras compléter ici manuellement
     
     # --- CDF annuelle ---
     st.pyplot(fig_cdf)
-    st.text_area("Commentaires (CDF annuelle)", "", height=50)
+    st.markdown("**Commentaires CDF annuelle :** ")  # zone pour ajout manuel
     
     # --- DJC ---
     st.pyplot(figures["DJC"])
-    st.text_area("Commentaires (DJC)", "", height=50)
+    st.markdown("**Commentaires DJC :** ")  # zone pour ajout manuel
     
     # --- DJF ---
     st.pyplot(figures["DJF"])
-    st.text_area("Commentaires (DJF)", "", height=50)
+    st.markdown("**Commentaires DJF :** ")  # zone pour ajout manuel
 
 
 
