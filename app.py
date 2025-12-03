@@ -47,7 +47,7 @@ vmaxT=5
 vminT=-5
 
 vmaxP=100
-vminP=0
+vminP=60
 
 vmaxH=100
 vminH=-100
