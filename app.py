@@ -168,6 +168,7 @@ if uploaded:
         .background_gradient(subset=["Précision percentile (%)"], cmap="RdYlGn", vmin=vminP, vmax=vmaxP, axis=None)
         .format({"Précision percentile (%)": "{:.2f}", "RMSE (°C)": "{:.2f}"})
     )
+    st.subheader("")
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
     
     st.markdown(
