@@ -378,7 +378,7 @@ if uploaded:
         phrase_tn_froid = f"TRACC a plus d'heures avec une T>{tx_seuil_chaud}°C ({heures_TRACC_froid}) que le modèle ({heures_modele_chaud})."
 
     # Stocker dans st.session_state pour la page Résumé
-    st.session_state["resume_hist"] = [phrase_tx_chaud]
+    st.session_state["resume_hist"] = [phrase_tx_chaud, phrase_tn_froid]
     
     # Optionnel : affichage sur la page actuelle
     st.subheader("Résumé comparatif histogrammes horaires/annuels")
