@@ -337,12 +337,11 @@ if uploaded:
     ax.bar(df_plot_year["Temp_Num"], df_plot_year["Différence absolue"], width=0.8,
            label=f"Différence absolue : Modèle / +{scenario_sel}/{ville_sel}", color="purple")
 
-    fig_hist_year = fig
-    ax.set_title("Année entière - Durée en heures par seuil de température")
+    ax.set_title("Année entière - Différence en heures par seuil de température")
     ax.set_xlabel("Température (°C)")
     ax.set_ylabel("Durée en heure")
     ax.legend()
-    
+    fig_hist_diff = fig
     st.pyplot(fig)
     plt.close(fig)
 
@@ -1120,6 +1119,8 @@ if uploaded:
     # --- Histogramme annuel ---
     st.pyplot(fig_hist_year)
 
+    st.pyplot(fig_hist_diff)
+    
     # --- Affichage du tableau RMSE et précision ---
     st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
     st.markdown(
