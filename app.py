@@ -370,6 +370,7 @@ if uploaded:
         phrase_hist = "Sur l'année, TRACC et le modèle ont le même total d'heures de températures."
     
     # Comparaison pour les températures élevées
+    tx_seuil_chaud = 30
     heures_TRACC_chaud = np.sum(obs_hourly_annual > tx_seuil_chaud)
     heures_modele_chaud = np.sum(mod_hourly_annual > tx_seuil_chaud)
     
