@@ -26,6 +26,15 @@ st.subheader("Histogrammes annuels")
 st.pyplot(st.session_state["fig_hist_year"])
 st.pyplot(st.session_state["fig_hist_diff"])
 
+st.subheader("Résumé histogrammes horaires / annuels")
+
+if "resume_hist" in st.session_state:
+    for p in st.session_state["resume_hist"]:
+        st.write("- " + p)
+else:
+    st.write("Les données histogrammes ne sont pas encore calculées.")
+
+
 # --- Tableau RMSE ---
 st.subheader("Précision du modèle : RMSE et percentiles")
 st.dataframe(st.session_state["df_rmse_styled"], hide_index=True)
@@ -70,10 +79,18 @@ st.markdown("**Commentaires CDF annuelle :**")
 # --- DJC et DJF ---
 st.subheader("DJC")
 st.pyplot(st.session_state["fig_DJC"])
-st.markdown("**Commentaires DJC :**")
-
 st.subheader("DJF")
 st.pyplot(st.session_state["fig_DJF"])
 
-st.markdown("**Commentaires DJF :**")
+st.subheader("Résumé DJC / DJF")
+st.markdown("**Commentaires DJC / DJF :**")
+
+
+if "resume_djc_djf" in st.session_state:
+    for p in st.session_state["resume_djc_djf"]:
+        st.write("- " + p)
+else:
+    st.write("Les données DJC/DJF ne sont pas encore calculées.")
+
+
 
