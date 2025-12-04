@@ -358,29 +358,27 @@ if uploaded:
     # Comparaison annuelle histogrammes horaires
     # =============================
     
-    # Totaux annuels
-    total_TRACC = obs_counts_annual.sum()
-    total_modele = mod_counts_annual.sum()
-    
-    if total_TRACC > total_modele:
-        phrase_hist = f"Sur l'année, TRACC a plus d'heures de températures observées ({total_TRACC}) que le modèle ({total_modele})."
-    elif total_modele > total_TRACC:
-        phrase_hist = f"Sur l'année, le modèle a plus d'heures de températures ({total_modele}) que TRACC ({total_TRACC})."
-    else:
-        phrase_hist = "Sur l'année, TRACC et le modèle ont le même total d'heures de températures."
-    
     # Comparaison pour les températures élevées
-    tx_seuil_chaud = 30
+    tx_seuil_chaud = 25
     heures_TRACC_chaud = np.sum(obs_hourly_annual > tx_seuil_chaud)
     heures_modele_chaud = np.sum(mod_hourly_annual > tx_seuil_chaud)
     
     if heures_TRACC_chaud > heures_modele_chaud:
-        phrase_tx_chaud = f"TRACC a plus d'heures avec Tx>{tx_seuil_chaud}°C ({heures_TRACC_chaud}) que le modèle ({heures_modele_chaud})."
+        phrase_tx_chaud = f"TRACC a plus d'heures avec une T>{tx_seuil_chaud}°C ({heures_TRACC_chaud}) que le modèle ({heures_modele_chaud})."
     else:
-        phrase_tx_chaud = f"Le modèle a plus d'heures avec Tx>{tx_seuil_chaud}°C ({heures_modele_chaud}) que TRACC ({heures_TRACC_chaud})."
+        phrase_tx_chaud = f"Le modèle a plus d'heures avec une T>{tx_seuil_chaud}°C ({heures_modele_chaud}) que TRACC ({heures_TRACC_chaud})."
+
+    tn_seuil_froid = 5
+    heures_TRACC_froid = np.sum(obs_hourly_annual < tn_seuil_froid)
+    heures_modele_froid = np.sum(mod_hourly_annual < tn_seuil_froid)
     
+    if heures_TRACC_froid < heures_modele_chaud:
+        phrase_tn_froid = f"Le modèle a plus d'heures avec une T>{tx_seuil_chaud}°C ({heures_modele_froid}) que TRACC ({heures_TRACC_chaud})."
+    else:
+        phrase_tn_froid = f"TRACC a plus d'heures avec une T>{tx_seuil_chaud}°C ({heures_TRACC_froid}) que le modèle ({heures_modele_chaud})."
+
     # Stocker dans st.session_state pour la page Résumé
-    st.session_state["resume_hist"] = [phrase_hist, phrase_tx_chaud]
+    st.session_state["resume_hist"] = [phrase_tx_chaud]
     
     # Optionnel : affichage sur la page actuelle
     st.subheader("Résumé comparatif histogrammes horaires/annuels")
