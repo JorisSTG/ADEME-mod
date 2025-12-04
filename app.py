@@ -496,17 +496,17 @@ if uploaded:
     
     # Générer les phrases
     if mean_TRACC_Tx > mean_Model_Tx:
-        phrase_Tx = "En moyenne, TRACC est plus chaud que le modèle pour les températures maximales (Tx)."
+        phrase_Tx = "En moyenne, la TRACC est plus chaude que le modèle pour les températures maximales (Tx)."
     else:
         phrase_Tx = "En moyenne, le modèle est plus chaud que TRACC pour les températures maximales (Tx)."
     
     if mean_TRACC_Tm > mean_Model_Tm:
-        phrase_Tm = "En moyenne, TRACC est plus chaud que le modèle pour les températures moyennes (Tmoy)."
+        phrase_Tm = "En moyenne, la TRACC est plus chaude que le modèle pour les températures moyennes (Tmoy)."
     else:
         phrase_Tm = "En moyenne, le modèle est plus chaud que TRACC pour les températures moyennes (Tmoy)."
     
     if mean_TRACC_Tn > mean_Model_Tn:
-        phrase_Tn = "En moyenne, TRACC est plus chaud que le modèle pour les températures minimales (Tn)."
+        phrase_Tn = "En moyenne, la TRACC est plus chaude que le modèle pour les températures minimales (Tn)."
     else:
         phrase_Tn = "En moyenne, le modèle est plus chaud que TRACC pour les températures minimales (Tn)."
     
