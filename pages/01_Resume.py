@@ -50,11 +50,17 @@ else:
 
 st.subheader("Jours chauds")
 st.pyplot(st.session_state["fig_jourschaud"])
-st.markdown("**Commentaires jours chauds :**")
-
 st.subheader("Nuits tropicales")
 st.pyplot(st.session_state["fig_nuittrop"])
-st.markdown("**Commentaires nuits tropicales :**")
+st.markdown("**Commentaires jours chauds et nuits tropicales**")
+st.subheader("Résumé jours chauds / nuits tropicales")
+
+if "resume_chaud_nuit" in st.session_state:
+    for p in st.session_state["resume_chaud_nuit"]:
+        st.write("- " + p)
+else:
+    st.write("Les données sur les jours chauds et nuits tropicales ne sont pas encore calculées.")
+
 
 # --- CDF annuelle ---
 st.subheader("CDF annuelle")
@@ -70,3 +76,4 @@ st.subheader("DJF")
 st.pyplot(st.session_state["fig_DJF"])
 
 st.markdown("**Commentaires DJF :**")
+
