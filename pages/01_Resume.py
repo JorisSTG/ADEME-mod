@@ -40,7 +40,13 @@ if mois_pas_precis:
 # --- Figures mensuelles Tn/Tmoy/Tx ---
 st.subheader("Évolution Tn/Tmoy/Tx")
 st.pyplot(st.session_state["fig_tn_tx_mois"])
-st.markdown("**Commentaires Tn/Tmoy/Tx :**")
+st.markdown("**Commentaires Tn/Tmoy/Tx**")
+# Vérifier si les phrases existent dans st.session_state
+if "resume_temp" in st.session_state:
+    for p in st.session_state["resume_temp"]:
+        st.write("- " + p)
+else:
+    st.write("Les données comparatives ne sont pas encore disponibles. Veuillez d'abord calculer les températures sur la page principale.")
 
 st.subheader("Jours chauds")
 st.pyplot(st.session_state["fig_jourschaud"])
@@ -62,4 +68,5 @@ st.markdown("**Commentaires DJC :**")
 
 st.subheader("DJF")
 st.pyplot(st.session_state["fig_DJF"])
+
 st.markdown("**Commentaires DJF :**")
