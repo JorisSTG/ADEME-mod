@@ -72,8 +72,31 @@ base_folder = "ADEME"
 uploaded = st.file_uploader("Déposer le fichier CSV du modèle (colonne unique T°C) :", type=["csv"])
 
 if uploaded:
-
-    st.page_link("pages/01_Resume.py", label="Aller au résumé")
+    
+    # --- Gros bouton centré pour accéder à la page Résumé ---
+    st.markdown(
+        """
+        <div style="
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 50px;
+        ">
+            <a href='/01_Resume' style="
+                background-color: #4CAF50;
+                color: white;
+                padding: 40px 80px;
+                text-align: center;
+                text-decoration: none;
+                font-size: 24px;
+                font-weight: bold;
+                border-radius: 20px;
+                box-shadow: 2px 2px 12px rgba(0,0,0,0.4);
+            ">Aller au résumé</a>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
 
     # Lecture CSV modèle
     model_values = pd.read_csv(uploaded, header=0).iloc[:, 0].values
