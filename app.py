@@ -739,7 +739,29 @@ if uploaded:
     st.markdown(f"**Total jours chauds TRACC :** {jours_chauds_total_tracc}, **Modèle :** {jours_chauds_total_modele}")
     st.markdown(f"**Total nuits tropicales TRACC :** {nuits_tropicales_total_tracc}, **Modèle :** {nuits_tropicales_total_modele}")
 
+    # =============================
+    # Comparaison annuelle jours chauds / nuits tropicales
+    # =============================
     
+    # Jours chauds
+    if jours_chauds_total_tracc > jours_chauds_total_modele:
+        phrase_jours = f"TRACC enregistre plus de jours chauds (Tx>{tx_seuil}°C) sur l'année ({jours_chauds_total_tracc}) que le modèle ({jours_chauds_total_modele})."
+    else:
+        phrase_jours = f"Le modèle enregistre plus de jours chauds (Tx>{tx_seuil}°C) sur l'année ({jours_chauds_total_modele}) que TRACC ({jours_chauds_total_tracc})."
+    
+    # Nuits tropicales
+    if nuits_tropicales_total_tracc > nuits_tropicales_total_modele:
+        phrase_nuits = f"TRACC enregistre plus de nuits tropicales (Tn>{tn_seuil}°C) sur l'année ({nuits_tropicales_total_tracc}) que le modèle ({nuits_tropicales_total_modele})."
+    else:
+        phrase_nuits = f"Le modèle enregistre plus de nuits tropicales (Tn>{tn_seuil}°C) sur l'année ({nuits_tropicales_total_modele}) que TRACC ({nuits_tropicales_total_tracc})."
+    
+    # Stocker dans st.session_state pour la page Résumé
+    st.session_state["resume_chaud_nuit"] = [phrase_jours, phrase_nuits]
+    
+    # Optionnel : affichage sur la page actuelle
+    st.subheader("Résumé comparatif jours chauds / nuits tropicales")
+    for p in st.session_state["resume_chaud_nuit"]:
+        st.write("- " + p)
    
     # ============================
     # Calcul DJC (chauffage) et DJF (froid)
