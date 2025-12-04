@@ -82,7 +82,7 @@ if uploaded:
             align-items: center;
             margin-top: 50px;
         ">
-            <a href='/01_Resume' style="
+            <a href='/pages/01_Resume' style="
                 background-color: #4CAF50;
                 color: white;
                 padding: 40px 80px;
