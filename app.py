@@ -480,6 +480,45 @@ if uploaded:
         use_container_width=True
     )
 
+    # =============================
+    # Comparaison moyenne annuelle
+    # =============================
+    
+    # Moyenne annuelle sur 12 mois pour TRACC et Modèle
+    mean_TRACC_Tx = df_tstats["TRACC_Tx"].mean()
+    mean_Model_Tx = df_tstats["Modèle_Tx"].mean()
+    
+    mean_TRACC_Tm = df_tstats["TRACC_Tm"].mean()
+    mean_Model_Tm = df_tstats["Modèle_Tm"].mean()
+    
+    mean_TRACC_Tn = df_tstats["TRACC_Tn"].mean()
+    mean_Model_Tn = df_tstats["Modèle_Tn"].mean()
+    
+    # Générer les phrases
+    if mean_TRACC_Tx > mean_Model_Tx:
+        phrase_Tx = "En moyenne, TRACC est plus chaud que le modèle pour les températures maximales (Tx)."
+    else:
+        phrase_Tx = "En moyenne, le modèle est plus chaud que TRACC pour les températures maximales (Tx)."
+    
+    if mean_TRACC_Tm > mean_Model_Tm:
+        phrase_Tm = "En moyenne, TRACC est plus chaud que le modèle pour les températures moyennes (Tmoy)."
+    else:
+        phrase_Tm = "En moyenne, le modèle est plus chaud que TRACC pour les températures moyennes (Tmoy)."
+    
+    if mean_TRACC_Tn > mean_Model_Tn:
+        phrase_Tn = "En moyenne, TRACC est plus chaud que le modèle pour les températures minimales (Tn)."
+    else:
+        phrase_Tn = "En moyenne, le modèle est plus chaud que TRACC pour les températures minimales (Tn)."
+    
+    # Stocker dans st.session_state pour pouvoir les réutiliser dans la page Résumé
+    st.session_state["resume_temp"] = [phrase_Tx, phrase_Tm, phrase_Tn]
+    
+    # Optionnel : afficher directement les phrases sur cette page
+    st.subheader("Résumé comparatif annuel des températures")
+    for p in st.session_state["resume_temp"]:
+        st.write("- " + p)
+
+
     # ============================
     #  SECTION: Tn / Tmoy / Tx journaliers
     # ============================
