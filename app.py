@@ -354,6 +354,38 @@ if uploaded:
     st.pyplot(fig)
     plt.close(fig)
 
+    # =============================
+    # Comparaison annuelle histogrammes horaires
+    # =============================
+    
+    # Totaux annuels
+    total_TRACC = obs_counts_annual.sum()
+    total_modele = mod_counts_annual.sum()
+    
+    if total_TRACC > total_modele:
+        phrase_hist = f"Sur l'année, TRACC a plus d'heures de températures observées ({total_TRACC}) que le modèle ({total_modele})."
+    elif total_modele > total_TRACC:
+        phrase_hist = f"Sur l'année, le modèle a plus d'heures de températures ({total_modele}) que TRACC ({total_TRACC})."
+    else:
+        phrase_hist = "Sur l'année, TRACC et le modèle ont le même total d'heures de températures."
+    
+    # Comparaison pour les températures élevées
+    tx_seuil_chaud = 35  # exemple seuil pour dire qu'il y a beaucoup de très fortes températures
+    heures_TRACC_chaud = np.sum(obs_hourly_annual > tx_seuil_chaud)
+    heures_modele_chaud = np.sum(mod_hourly_annual > tx_seuil_chaud)
+    
+    if heures_TRACC_chaud > heures_modele_chaud:
+        phrase_tx_chaud = f"TRACC a plus d'heures avec Tx>{tx_seuil_chaud}°C ({heures_TRACC_chaud}) que le modèle ({heures_modele_chaud})."
+    else:
+        phrase_tx_chaud = f"Le modèle a plus d'heures avec Tx>{tx_seuil_chaud}°C ({heures_modele_chaud}) que TRACC ({heures_TRACC_chaud})."
+    
+    # Stocker dans st.session_state pour la page Résumé
+    st.session_state["resume_hist"] = [phrase_hist, phrase_tx_chaud]
+    
+    # Optionnel : affichage sur la page actuelle
+    st.subheader("Résumé comparatif histogrammes horaires/annuels")
+    for p in st.session_state["resume_hist"]:
+        st.write("- " + p)
 
 
     # -------- Précision par créneau horaire --------
@@ -892,6 +924,35 @@ if uploaded:
     st.subheader("Sommes annuelles")
     st.write(f"DJC annuel : TRACC = {total_DJC_TRACC:.0f}    /    Modèle = {total_DJC_modele:.0f}")
     st.write(f"DJF annuel : TRACC = {total_DJF_TRACC:.0f}    /    Modèle = {total_DJF_modele:.0f}")
+
+    # =============================
+    # Résumé automatique DJC / DJF
+    # =============================
+    
+    # DJC (chauffage)
+    if total_DJC_TRACC > total_DJC_modele:
+        phrase_djc = f"TRACC a une demande de chauffage annuelle plus élevée ({total_DJC_TRACC:.0f} °C·jour) que le modèle ({total_DJC_modele:.0f} °C·jour)."
+    elif total_DJC_modele > total_DJC_TRACC:
+        phrase_djc = f"Le modèle a une demande de chauffage annuelle plus élevée ({total_DJC_modele:.0f} °C·jour) que TRACC ({total_DJC_TRACC:.0f} °C·jour)."
+    else:
+        phrase_djc = "TRACC et le modèle ont la même demande de chauffage annuelle."
+    
+    # DJF (refroidissement)
+    if total_DJF_TRACC > total_DJF_modele:
+        phrase_djf = f"TRACC a une demande de refroidissement annuelle plus élevée ({total_DJF_TRACC:.0f} °C·jour) que le modèle ({total_DJF_modele:.0f} °C·jour)."
+    elif total_DJF_modele > total_DJF_TRACC:
+        phrase_djf = f"Le modèle a une demande de refroidissement annuelle plus élevée ({total_DJF_modele:.0f} °C·jour) que TRACC ({total_DJF_TRACC:.0f} °C·jour)."
+    else:
+        phrase_djf = "TRACC et le modèle ont la même demande de refroidissement annuelle."
+    
+    # Stocker dans st.session_state pour la page Résumé
+    st.session_state["resume_djc_djf"] = [phrase_djc, phrase_djf]
+    
+    # Optionnel : affichage sur la page actuelle
+    st.subheader("Résumé comparatif DJC / DJF")
+    for p in st.session_state["resume_djc_djf"]:
+        st.write("- " + p)
+
 
 
     # ======================================
