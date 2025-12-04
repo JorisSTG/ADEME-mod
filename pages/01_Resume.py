@@ -74,7 +74,6 @@ else:
 # --- CDF annuelle ---
 st.subheader("CDF annuelle")
 st.pyplot(st.session_state["fig_cdf"])
-st.markdown("**Commentaires CDF annuelle :**")
 
 # --- DJC et DJF ---
 st.subheader("DJC")
@@ -91,6 +90,7 @@ if "resume_djc_djf" in st.session_state:
         st.write("- " + p)
 else:
     st.write("Les données DJC/DJF ne sont pas encore calculées.")
+
 
 
 
