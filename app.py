@@ -303,8 +303,9 @@ if uploaded:
     obs_counts_annual = count_hours_in_bins(obs_hourly_annual, bin_edges)
     mod_counts_annual = count_hours_in_bins(mod_hourly_annual, bin_edges)
 
-    diff_counts_annual = abs(obs_counts_annual-mod_counts_annual)
-    
+    diff_counts_annual_modele = max(0, obs_counts_annual-mod_counts_annual)
+    diff_counts_annual_TRACC = max(0, mod_counts_annual-obs_counts_annual)
+
     # Préparer DataFrame pour le plot
     df_plot_year = pd.DataFrame({
         "Temp_Num": bin_labels,
@@ -333,14 +334,16 @@ if uploaded:
     df_plot_year = pd.DataFrame({
         "Temp_Num": bin_labels,
         "Température": bin_labels.astype(str),
-        "Différence absolue": diff_counts_annual
+        "Différence absolue modele": diff_counts_annual_modele,
+        "Différence absolue TRACC": diff_counts_annual_TRACC
     }).sort_values("Temp_Num")
     
     # Plot
     fig, ax = plt.subplots(figsize=(16, 5))
-    ax.bar(df_plot_year["Temp_Num"], df_plot_year["Différence absolue"], width=0.8,
-           label=f"Différence absolue : Modèle / +{scenario_sel}/{ville_sel}", color="purple")
-
+    ax.bar(df_plot_year["Temp_Num"], df_plot_year["Différence absolue modele"], width=0.8,
+           label=f"Différence absolue : Modèle / +{scenario_sel}/{ville_sel}", color=couleur_modele)
+    ax.bar(df_plot_year["Temp_Num"], df_plot_year["Différence absolue TRACC"], width=0.8,
+           label=f"Différence absolue : Modèle / +{scenario_sel}/{ville_sel}", color=couleur_TRACC)
     ax.set_title("Année entière - Différence en heures par seuil de température")
     ax.set_xlabel("Température (°C)")
     ax.set_ylabel("Durée en heure")
