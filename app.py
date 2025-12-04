@@ -74,9 +74,6 @@ uploaded = st.file_uploader("Déposer le fichier CSV du modèle (colonne unique 
 if uploaded:
 
     st.markdown("")
-    # --- Bouton pour aller sur la page Résumé ---
-    if st.button("Aller au résumé"):
-        st.switch_page("01_Resume")  # juste le nom de la page, sans "pages/" ni ".py"
     
     # Lecture CSV modèle
     model_values = pd.read_csv(uploaded, header=0).iloc[:, 0].values
