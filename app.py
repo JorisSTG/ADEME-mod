@@ -72,6 +72,11 @@ base_folder = "ADEME"
 uploaded = st.file_uploader("Déposer le fichier CSV du modèle (colonne unique T°C) :", type=["csv"])
 
 if uploaded:
+
+    # ---- Bouton pour accéder à la page Résumé ----
+    if st.button("Aller au résumé"):
+        st.switch_page("pages/01_Resume.py")
+
     # Lecture CSV modèle
     model_values = pd.read_csv(uploaded, header=0).iloc[:, 0].values
 
@@ -1114,51 +1119,18 @@ if uploaded:
         st.dataframe(df_pivot.style.background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT).format("{:.2f}"))
 
 
-    st.subheader("Résumé des figures")
-    
-    # --- Histogramme annuel ---
-    st.pyplot(fig_hist_year)
+    # ---- Stockage des figures dans session_state ----
+    st.session_state["fig_hist_year"] = fig_hist_year
+    st.session_state["fig_hist_diff"] = fig_hist_diff
+    st.session_state["df_rmse"] = df_rmse
+    st.session_state["df_rmse_styled"] = df_rmse_styled
+    st.session_state["fig_tn_tx_mois"] = fig_tn_tx_mois
+    st.session_state["fig_jourschaud"] = fig_jourschaud
+    st.session_state["fig_nuittrop"] = fig_nuittrop
+    st.session_state["fig_cdf"] = fig_cdf
+    st.session_state["fig_DJC"] = figures["DJC"]
+    st.session_state["fig_DJF"] = figures["DJF"]
 
-    st.pyplot(fig_hist_diff)
-    
-    # --- Affichage du tableau RMSE et précision ---
-    st.subheader("Précision du modèle : RMSE et précision via écarts des percentiles")
-    st.markdown(
-        """
-        La précision est calculée à partir de la moyenne des différences absolues entre les percentiles du modèle et ceux de la TRACC (c’est-à-dire le RMSE), ainsi que de l’écart-type du mois de référence issu des données TRACC.
-        """,
-        unsafe_allow_html=True
-    )
-    st.dataframe(df_rmse_styled, hide_index=True)
-    
-    # Résumé automatique de la précision mensuelle à partir de df_rmse
-    # --- Résumé automatique de la précision ---
-    mois_pas_precis = [mois for mois, pct in zip(df_rmse["Mois"], df_rmse["Précision percentile (%)"]) if pct < 60]
-    
-    if mois_pas_precis:
-        st.markdown("**Mois avec une mauvaise précision :** " + ", ".join(mois_pas_precis))
-
-    # --- Tn/Tmoy/Tx mensuelles ---
-    st.pyplot(fig_tn_tx_mois)
-    st.markdown("**Commentaires Tn/Tmoy/Tx :** ")  # zone à compléter manuellement ou automatiquement plus tard
-
-    st.pyplot(fig_jourschaud)
-    st.markdown("**Commentaires jours chauds :** ")
-    
-    st.pyplot(fig_nuittrop)
-    st.markdown("**Commentaires nuits tropicales :** ")
-    
-    # --- CDF annuelle ---
-    st.pyplot(fig_cdf)
-    st.markdown("**Commentaires CDF annuelle :** ")  # zone à compléter
-    
-    # --- DJC ---
-    st.pyplot(figures["DJC"])
-    st.markdown("**Commentaires DJC :** ")  # zone à compléter
-    
-    # --- DJF ---
-    st.pyplot(figures["DJF"])
-    st.markdown("**Commentaires DJF :** ")  # zone à compléter
 
 
 
