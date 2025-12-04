@@ -72,7 +72,8 @@ base_folder = "ADEME"
 uploaded = st.file_uploader("Déposer le fichier CSV du modèle (colonne unique T°C) :", type=["csv"])
 
 if uploaded:
-    
+
+    st.title("")
     # --- Bouton pour aller sur la page Résumé ---
     if st.button("Aller au résumé"):
         st.switch_page("01_Resume")  # juste le nom de la page, sans "pages/" ni ".py"
