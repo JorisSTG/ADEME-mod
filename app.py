@@ -335,7 +335,7 @@ if uploaded:
     # Plot
     fig, ax = plt.subplots(figsize=(16, 5))
     ax.bar(df_plot_year["Temp_Num"], df_plot_year["Différence absolue"], width=1,
-           label=f"Différence absolue : Modèle / +{scenario_sel}/{ville_sel}", color=magenta)
+           label=f"Différence absolue : Modèle / +{scenario_sel}/{ville_sel}", color="purple")
 
     fig_hist_year = fig
     ax.set_title("Année entière - Durée en heures par seuil de température")
