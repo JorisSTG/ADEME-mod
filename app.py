@@ -372,7 +372,6 @@ if uploaded:
         """,
         unsafe_allow_html=True
     )
-    st.dataframe(df_rmse_styled, hide_index=True)
 
     # =============================
     # Comparaison annuelle histogrammes horaires
