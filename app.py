@@ -19,21 +19,17 @@ plt.rcParams.update({
     "text.color": "#FFFFFF",
 })
 
-st.markdown(
-    """
-    L’objectif de cette application est d’évaluer la précision de données météorologiques en les comparant à des données de référence, afin de juger de leur pertinence pour les projections climatiques futures en France. Ces données de référence correspondent aux jeux TRACC, issus de différentes méthodes de génération d’années types.
-    Les comparaisons sont réalisées entre les projections climatiques TRACC — constituées d’années types dans un climat à +X °C, avec ou sans vague de chaleur — et les données issues du « modèle », fournies sous forme d’un fichier CSV contenant uniquement la température, soit une série de 1 × 8760 valeurs.
-    Cet outil est principalement utilisé dans le domaine du bâtiment, notamment pour l’évaluation thermique à travers des modèles de simulation dynamique (STD).
-    """,
-    unsafe_allow_html=True
-)
-
 
 st.title("Comparaison : Modèle / TRACC")
 
 st.markdown(
     """
-    La caractérisation du modèle vis-à-vis des données issues de la TRACC est basée uniquement sur la température de l'air !
+
+    L’objectif de cette application est d’évaluer la précision de données météorologiques en les comparant à des données de référence, afin de juger de leur pertinence pour les projections climatiques futures en France. Ces données de référence correspondent aux jeux TRACC, issus de différentes méthodes de génération d’années types.
+    Les comparaisons sont réalisées entre les projections climatiques TRACC — constituées d’années types dans un climat à +X °C, avec ou sans vague de chaleur — et les données issues du « modèle », fournies sous forme d’un fichier CSV contenant uniquement la température, soit une série de 1 × 8760 valeurs.
+    Cet outil est principalement utilisé dans le domaine du bâtiment, notamment pour l’évaluation thermique à travers des modèles de simulation dynamique (STD).
+
+    https://data.ademe.fr/datasets/?q=tracc&topics=fJZXrdcRGP
     
     **Note sur les couleurs :**  
     - Les couleurs visent à caractériser le **MODÈLE** (données issues du fichier `.csv`).  
@@ -362,6 +358,14 @@ if uploaded:
     fig_hist_diff = fig
     st.pyplot(fig)
     plt.close(fig)
+
+    st.markdown(
+        """
+        
+        """,
+        unsafe_allow_html=True
+    )
+    st.dataframe(df_rmse_styled, hide_index=True)
 
     # =============================
     # Comparaison annuelle histogrammes horaires
