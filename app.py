@@ -361,7 +361,14 @@ if uploaded:
 
     st.markdown(
         """
-        
+        La couleur de la différence est définie ainsi :
+
+        Barres jaunes : le modèle compte davantage d’heures que la TRACC dans cette plage de température.
+
+        Barres blanches : la TRACC compte davantage d’heures que le modèle dans cette plage de température.
+
+        La conclusion dépend donc de l’endroit où se situe cette différence. Une analyse doit être réalisée manuellement : par exemple, si la TRACC présente plus d’heures dans les plages « froides », cela signifie qu’elle est globalement plus froide que le modèle.
+        Comme les deux séries possèdent le même nombre total d’heures, un excès d’heures froides dans la TRACC implique mécaniquement un excès d’heures chaudes dans le modèle (et inversement).
         """,
         unsafe_allow_html=True
     )
