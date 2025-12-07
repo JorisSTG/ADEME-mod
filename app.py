@@ -1051,7 +1051,7 @@ if uploaded:
     # -------- Graphique PXX modèle vs TRACC --------
     fig, ax = plt.subplots(figsize=(6,6))
     ax.scatter(P_obs, P_mod, color='goldenrod', s=20, label='Modèle')
-    ax.plot([min(P_obs), max(P_obs)], [min(P_obs), max(P_obs)], 'k--', label='y=x')
+    ax.plot([min(P_obs), max(P_obs)], [min(P_obs), max(P_obs)], color='white', '--', label='y=x')
     ax.set_xlabel("PXX TRACC (°C)")
     ax.set_ylabel("PXX Modèle (°C)")
     ax.set_title("Comparaison des percentiles annuels")
