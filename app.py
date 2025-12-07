@@ -101,25 +101,29 @@ if uploaded:
         return np.sqrt(np.nanmean((a_sorted - b_sorted) ** 2))
     
     # -------- Précision basée sur les écarts de percentiles --------
-    def precision_ecarts_percentiles(a, b):
+    # -------- Nouvelle fonction : indice de recouvrement --------
+    def precision_overlap(a, b, bin_width=1.0):
+        """
+        Calcule l'indice de recouvrement (%) entre deux séries de données.
+        bin_width : largeur des tranches pour l'histogramme (en °C)
+        """
         if len(a) == 0 or len(b) == 0:
             return np.nan
-        # Percentiles 1 à 99
-        percentiles = np.arange(1, 100)
-        pa = np.percentile(a, percentiles)
-        pb = np.percentile(b, percentiles)
     
-        # Différence moyenne normalisée par l'écart-type
-        diff_moyenne = np.mean(np.abs(pa - pb))
-        scale = np.std(pb)
-        
-        if scale == 0:
-            return 100.0  # pas de variation dans b, a=b ou pas → score max
+        # Définir les bornes de l'histogramme
+        min_val = min(np.min(a), np.min(b))
+        max_val = max(np.max(a), np.max(b))
+        bins = np.arange(min_val, max_val + bin_width, bin_width)
     
-        score = 100 * (1 - diff_moyenne / (2*scale))
-        score = max(0, min(100, score))  # on contraint entre 0 et 100
+        # Calcul des histogrammes normalisés
+        hist_a, _ = np.histogram(a, bins=bins, density=True)
+        hist_b, _ = np.histogram(b, bins=bins, density=True)
     
-        return round(score, 2)
+        # Indice de recouvrement
+        overlap = np.sum(np.minimum(hist_a, hist_b) * bin_width)
+        indice_percent = overlap * 100
+        return round(indice_percent, 2)
+
 
     # -------- Boucle sur les mois --------
     results_rmse = []
@@ -133,7 +137,7 @@ if uploaded:
         obs_mois_all.append(obs_mois_vals)
 
         val_rmse = rmse(mod_mois, obs_mois_vals)
-        pct_precision = precision_ecarts_percentiles(mod_mois, obs_mois_vals)
+        pct_precision = precision_overlap(mod_mois, obs_mois_vals)
 
         results_rmse.append({
             "Mois": mois,
