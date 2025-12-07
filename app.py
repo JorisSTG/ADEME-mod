@@ -165,6 +165,14 @@ if uploaded:
     )
     st.dataframe(df_rmse_styled, hide_index=True)
 
+    # -------- Précision globale annuelle --------
+    model_annee = model_values[:sum(heures_par_mois)]        # toutes les heures de l'année
+    obs_annee = np.concatenate(obs_mois_all)                # toutes les heures TRACC concaténées
+    
+    precision_annuelle = precision_overlap(model_annee, obs_annee)
+    st.subheader(f"Précision globale annuelle (%) : {precision_annuelle}")
+
+
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
     t_inf_thresholds = st.text_input("Seuils Tmin inférieur (°C, séparés par des virgules)", "-5,0,5")
