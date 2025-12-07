@@ -1044,6 +1044,21 @@ if uploaded:
     st.pyplot(fig)
     plt.close(fig)
 
+     # -------- Calcul des percentiles P1 à P100 --------
+    percentiles = np.arange(1, 101)
+    P_obs = np.percentile(obs_annee, percentiles)
+    P_mod = np.percentile(model_annee, percentiles)
+    # -------- Graphique PXX modèle vs TRACC --------
+    fig, ax = plt.subplots(figsize=(6,6))
+    ax.scatter(P_obs, P_mod, color='goldenrod', s=20, label='Modèle')
+    ax.plot([min(P_obs), max(P_obs)], [min(P_obs), max(P_obs)], 'k--', label='y=x')
+    ax.set_xlabel("PXX TRACC (°C)")
+    ax.set_ylabel("PXX Modèle (°C)")
+    ax.set_title("Comparaison des percentiles annuels")
+    ax.legend()
+    ax.grid(True)
+    st.pyplot(fig)
+
 
     # -------- Graphiques CDF et percentiles --------
     st.subheader("Fonctions de répartition mensuelles (CDF)")
