@@ -100,7 +100,6 @@ if uploaded:
         b_sorted = np.sort(b[:min_len])
         return np.sqrt(np.nanmean((a_sorted - b_sorted) ** 2))
     
-    # -------- Précision basée sur les écarts de percentiles --------
     # -------- Nouvelle fonction : indice de recouvrement --------
     def precision_overlap(a, b, bin_width=1.0):
         """
