@@ -170,8 +170,8 @@ if uploaded:
     obs_annee = np.concatenate(obs_mois_all)                # toutes les heures TRACC concaténées
     
     precision_annuelle = precision_overlap(model_annee, obs_annee)
-    st.subheader(f"Précision globale annuelle (%) : {precision_annuelle}")
-
+    st.subheader(f"Précision globale annuelle : {precision_annuelle} %")
+    st.subheader("")
 
     # -------- Seuils --------
     t_sup_thresholds = st.text_input("Seuils Tmax supérieur (°C, séparés par des virgules)", "25,30,35")
