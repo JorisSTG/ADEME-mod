@@ -1291,54 +1291,38 @@ if uploaded:
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.set_ylim(-5, 45)
     
-    # Définition des paires et des couleurs comme pour le graphique mensuel
+    # Définition des paires et des couleurs pour 6 scénarios
     scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
     colors = ["green", "orange", "magenta"]
     
+    # Boucle sur toutes les paires pour les 6 scénarios
     for i, (sc1, sc2) in enumerate(scenario_pairs):
         color = colors[i]
     
-        # ---- Scénario 1 (trait plein) ----
+        # Scénario 1 (plein)
         nc_file = os.path.join(base_folder, sc1, f"{ville_sel}.nc")
-        ds = xr.open_dataset(nc_file, decode_times=True)
-        temp_annee = ds["T2m"].to_series().values
-        cdf_values = np.percentile(temp_annee, percentiles_cdf)
+        if os.path.exists(nc_file):
+            ds = xr.open_dataset(nc_file, decode_times=True)
+            temp_annee = ds["T2m"].to_series().values
+            if len(temp_annee) > 0:
+                cdf_values = np.percentile(temp_annee, percentiles_cdf)
+                ax.plot(percentiles_cdf, cdf_values, label=sc1, color=color, linestyle="-")
     
-        ax.plot(
-            percentiles_cdf,
-            cdf_values,
-            label=f"{sc1}",
-            color=color,
-            linestyle="-"
-        )
-    
-        # ---- Scénario 2 (pointillé) ----
+        # Scénario 2 (pointillé)
         nc_file = os.path.join(base_folder, sc2, f"{ville_sel}.nc")
-        ds = xr.open_dataset(nc_file, decode_times=True)
-        temp_annee = ds["T2m"].to_series().values
-        cdf_values = np.percentile(temp_annee, percentiles_cdf)
+        if os.path.exists(nc_file):
+            ds = xr.open_dataset(nc_file, decode_times=True)
+            temp_annee = ds["T2m"].to_series().values
+            if len(temp_annee) > 0:
+                cdf_values = np.percentile(temp_annee, percentiles_cdf)
+                ax.plot(percentiles_cdf, cdf_values, label=sc2, color=color, linestyle="--")
     
-        ax.plot(
-            percentiles_cdf,
-            cdf_values,
-            label=f"{sc2}",
-            color=color,
-            linestyle="--"
-        )
-    
-    # CDF du modèle si dispo
-    if 'model_values' in locals():
+    # CDF du modèle
+    if 'model_values' in locals() and len(model_values) > 0:
         mod_percentiles_annual = np.percentile(model_values, percentiles_cdf)
-        ax.plot(
-            percentiles_cdf,
-            mod_percentiles_annual,
-            label="Modèle",
-            color=couleur_modele,
-            linewidth=2,
-            linestyle="-"
-        )
+        ax.plot(percentiles_cdf, mod_percentiles_annual, label="Modèle", color=couleur_modele, linewidth=2, linestyle="-")
     
-    ax.set_title("Année entière - Fonction de répartition (CDF)", color="white")
+    ax.set_title("Année entière - Fonction de répartition (CDF) pour tous les scénarios", color="white")
     ax.set_xlabel("Percentile", color="white")
     ax.set_ylabel("Température (°C)", color="white")
     ax.tick_params(colors="white")
