@@ -1302,6 +1302,7 @@ if uploaded:
             percentiles_cdf,
             cdf_values,
             label=f"{scenario}",
+            color=color,
             linewidth=2,
             linestyle="-"  # tu peux alterner plein / pointillé si tu veux
         )
