@@ -1282,6 +1282,48 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
+    # -------- CDF annuelle pour tous les scénarios --------
+    st.subheader(f"CDF annuelle pour tous les scénarios - {ville_sel}")
+    
+    fig, ax = plt.subplots(figsize=(12, 5))
+    ax.set_ylim(-5, 45)
+    
+    for i, scenario in enumerate(scenarios):
+        nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
+        ds = xr.open_dataset(nc_file, decode_times=True)
+        temp_annee = ds["T2m"].to_series().values  # toutes les heures de l'année
+        cdf_values = np.percentile(temp_annee, np.linspace(0, 100, 100))
+        
+        ax.plot(
+            np.linspace(0, 100, 100),
+            cdf_values,
+            label=f"{scenario}",
+            linewidth=2,
+            linestyle="-" if i % 2 == 0 else "--"  # alterne plein / pointillé
+        )
+    
+    # CDF du modèle si dispo
+    if 'model_values' in locals():
+        cdf_model = np.percentile(model_values, np.linspace(0, 100, 100))
+        ax.plot(
+            np.linspace(0, 100, 100),
+            cdf_model,
+            label="Modèle",
+            color="white",
+            linewidth=2,
+            linestyle="-"
+        )
+    
+    ax.set_title("CDF annuelle comparatif", color="white")
+    ax.set_xlabel("Percentile", color="white")
+    ax.set_ylabel("Température (°C)", color="white")
+    ax.tick_params(colors="white")
+    ax.legend(facecolor="black")
+    ax.set_facecolor("none")
+    
+    st.pyplot(fig)
+    plt.close(fig)
+
     # -------- Heatmap des écarts des percentiles par mois et scénario --------
     st.subheader(f"Ecarts des percentiles (Modèle - Scénarios TRACC)")
     
