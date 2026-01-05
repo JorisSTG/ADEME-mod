@@ -1,7 +1,7 @@
 streamlit
 pandas
 xarray
-netCDF4
+netCDF4>=1.6.5
 numpy
 matplotlib
 scipy
