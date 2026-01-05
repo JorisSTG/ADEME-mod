@@ -1282,40 +1282,43 @@ if uploaded:
         st.pyplot(fig)
         plt.close(fig)
 
-        
-    # -------- CDF annuelle pour tous les scénarios --------
-    st.subheader(f"CDF annuelle pour tous les scénarios - {ville_sel}")
+    # -------- Fonction de répartition ANNUELLE pour tous les scénarios --------
+    st.subheader(f"Fonction de répartition annuelle (CDF) - {ville_sel}")
+    
+    # Percentiles pour CDF (0–100)
+    percentiles_cdf = np.linspace(0, 100, 100)
     
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.set_ylim(-5, 45)
     
-    for i, scenario in enumerate(scenarios):
+    # Parcours des scénarios
+    for scenario in scenarios:
         nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
         ds = xr.open_dataset(nc_file, decode_times=True)
         temp_annee = ds["T2m"].to_series().values  # toutes les heures de l'année
-        cdf_values = np.percentile(temp_annee, np.linspace(0, 100, 100))
+        cdf_values = np.percentile(temp_annee, percentiles_cdf)
         
         ax.plot(
-            np.linspace(0, 100, 100),
+            percentiles_cdf,
             cdf_values,
             label=f"{scenario}",
             linewidth=2,
-            linestyle="-" if i % 2 == 0 else "--"
+            linestyle="-"  # tu peux alterner plein / pointillé si tu veux
         )
     
     # CDF du modèle si dispo
     if 'model_values' in locals():
-        cdf_model = np.percentile(model_values, np.linspace(0, 100, 100))
+        mod_percentiles_annual = np.percentile(model_values, percentiles_cdf)
         ax.plot(
-            np.linspace(0, 100, 100),
-            cdf_model,
+            percentiles_cdf,
+            mod_percentiles_annual,
             label="Modèle",
-            color="white",
+            color=couleur_modele,
             linewidth=2,
-            linestyle="-"
+            linestyle="--"
         )
     
-    ax.set_title("CDF annuelle comparatif", color="white")
+    ax.set_title("Année entière - Fonction de répartition (CDF)", color="white")
     ax.set_xlabel("Percentile", color="white")
     ax.set_ylabel("Température (°C)", color="white")
     ax.tick_params(colors="white")
@@ -1323,7 +1326,9 @@ if uploaded:
     ax.set_facecolor("none")
     
     st.pyplot(fig)
-    plt.close(fig)
+    plt.close(fig)    
+    
+    
     # -------- Heatmap des écarts des percentiles par mois et scénario --------
     st.subheader(f"Ecarts des percentiles (Modèle - Scénarios TRACC)")
     
