@@ -1291,20 +1291,39 @@ if uploaded:
     fig, ax = plt.subplots(figsize=(12, 5))
     ax.set_ylim(-5, 45)
     
-    # Parcours des scénarios
-    for scenario in scenarios:
-        nc_file = os.path.join(base_folder, scenario, f"{ville_sel}.nc")
+    # Définition des paires et des couleurs comme pour le graphique mensuel
+    scenario_pairs = [("2", "2_VC"), ("2-7", "2-7_VC"), ("4", "4_VC")]
+    colors = ["green", "orange", "magenta"]
+    
+    for i, (sc1, sc2) in enumerate(scenario_pairs):
+        color = colors[i]
+    
+        # ---- Scénario 1 (trait plein) ----
+        nc_file = os.path.join(base_folder, sc1, f"{ville_sel}.nc")
         ds = xr.open_dataset(nc_file, decode_times=True)
-        temp_annee = ds["T2m"].to_series().values  # toutes les heures de l'année
+        temp_annee = ds["T2m"].to_series().values
         cdf_values = np.percentile(temp_annee, percentiles_cdf)
-        
+    
         ax.plot(
             percentiles_cdf,
             cdf_values,
-            label=f"{scenario}",
+            label=f"{sc1}",
             color=color,
-            linewidth=2,
-            linestyle="-"  # tu peux alterner plein / pointillé si tu veux
+            linestyle="-"
+        )
+    
+        # ---- Scénario 2 (pointillé) ----
+        nc_file = os.path.join(base_folder, sc2, f"{ville_sel}.nc")
+        ds = xr.open_dataset(nc_file, decode_times=True)
+        temp_annee = ds["T2m"].to_series().values
+        cdf_values = np.percentile(temp_annee, percentiles_cdf)
+    
+        ax.plot(
+            percentiles_cdf,
+            cdf_values,
+            label=f"{sc2}",
+            color=color,
+            linestyle="--"
         )
     
     # CDF du modèle si dispo
@@ -1316,7 +1335,7 @@ if uploaded:
             label="Modèle",
             color=couleur_modele,
             linewidth=2,
-            linestyle="--"
+            linestyle="-"
         )
     
     ax.set_title("Année entière - Fonction de répartition (CDF)", color="white")
@@ -1327,8 +1346,7 @@ if uploaded:
     ax.set_facecolor("none")
     
     st.pyplot(fig)
-    plt.close(fig)    
-    
+    plt.close(fig)
     
     # -------- Heatmap des écarts des percentiles par mois et scénario --------
     st.subheader(f"Ecarts des percentiles (Modèle - Scénarios TRACC)")
