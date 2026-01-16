@@ -7,3 +7,4 @@ matplotlib
 scipy
 seaborn
 reportlab
+h5py
