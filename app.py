@@ -653,8 +653,8 @@ if uploaded:
         n_full_days = len(hourly) // 24
         arr = np.array(hourly[: n_full_days * 24]).reshape((n_full_days, 24))
         daily_min = arr.min(axis=1)
-        daily_mean = arr.mean(axis=1)
         daily_max = arr.max(axis=1)
+        daily_mean = (daily_max+daily_min)/2
         return daily_min, daily_mean, daily_max
     
     # percentiles pour les petits tableaux
@@ -692,12 +692,7 @@ if uploaded:
         Tn_jour_mod_all.append(mod_tn)
         Tm_jour_mod_all.append(mod_tm)
         Tx_jour_mod_all.append(mod_tx)
-    
-        # Si pas de données, passer
-        if obs_tn.size == 0 or mod_tn.size == 0:
-            st.write(f"{mois} — données insuffisantes pour calculer les statistiques journalières.")
-            continue
-    
+        
         # ---- préparer CDFs (percentiles des séries journalières) ----
         obs_tn_cdf = np.percentile(obs_tn, pct_for_cdf)
         mod_tn_cdf = np.percentile(mod_tn, pct_for_cdf)
@@ -781,6 +776,111 @@ if uploaded:
             .format({col: "{:.2f}" for col in ["Diff_Tn_jour","Diff_Tm_jour","Diff_Tx_jour"]})
         )
         st.dataframe(df_diff_styled, hide_index=True)
+
+    # ============================
+    #  SECTION: Répartition annuelle des Tn / Tmoy / Tx journaliers
+    # ============================
+    st.subheader("Répartition annuelle des Tn_jour / Tmoy_jour / Tx_jour — CDF annuelle")
+    
+    # Concaténation annuelle des données journalières
+    Tn_obs_year = np.concatenate(Tn_jour_all) if len(Tn_jour_all) > 0 else np.array([])
+    Tm_obs_year = np.concatenate(Tm_jour_all) if len(Tm_jour_all) > 0 else np.array([])
+    Tx_obs_year = np.concatenate(Tx_jour_all) if len(Tx_jour_all) > 0 else np.array[]
+    
+    Tn_mod_year = np.concatenate(Tn_jour_mod_all) if len(Tn_jour_mod_all) > 0 else np.array([])
+    Tm_mod_year = np.concatenate(Tm_jour_mod_all) if len(Tm_jour_mod_all) > 0 else np.array([])
+    Tx_mod_year = np.concatenate(Tx_jour_mod_all) if len(Tx_jour_mod_all) > 0 else np.array[]
+    
+    # Calcul des CDF annuelles (0-100%)
+    pct_for_cdf = np.linspace(0, 100, 100)
+    obs_tn_cdf_year = np.percentile(Tn_obs_year, pct_for_cdf) if Tn_obs_year.size > 0 else np.array([])
+    mod_tn_cdf_year = np.percentile(Tn_mod_year, pct_for_cdf) if Tn_mod_year.size > 0 else np.array([])
+    obs_tm_cdf_year = np.percentile(Tm_obs_year, pct_for_cdf) if Tm_obs_year.size > 0 else np.array([])
+    mod_tm_cdf_year = np.percentile(Tm_mod_year, pct_for_cdf) if Tm_mod_year.size > 0 else np.array([])
+    obs_tx_cdf_year = np.percentile(Tx_obs_year, pct_for_cdf) if Tx_obs_year.size > 0 else np.array([])
+    mod_tx_cdf_year = np.percentile(Tx_mod_year, pct_for_cdf) if Tx_mod_year.size > 0 else np.array([])
+    
+    # Tracé des CDF annuelles sur un même graphique
+    fig, ax = plt.subplots(figsize=(14, 6))
+    
+    # Couleurs cohérentes pour chaque variable
+    colors = {
+        "Tn": "cyan",
+        "Tm": "white",
+        "Tx": "red"
+    }
+    
+    # Tracer Modèle (lignes pleines)
+    ax.plot(pct_for_cdf, mod_tx_cdf_year, linestyle="-", linewidth=2, label=f"Modèle Tx", color=colors["Tx"])
+    ax.plot(pct_for_cdf, mod_tm_cdf_year, linestyle="-", linewidth=2, label=f"Modèle Tmoy", color=colors["Tm"])
+    ax.plot(pct_for_cdf, mod_tn_cdf_year, linestyle="-", linewidth=2, label=f"Modèle Tn", color=colors["Tn"])
+    
+    # Tracer TRACC (lignes pointillées)
+    ax.plot(pct_for_cdf, obs_tx_cdf_year, linestyle="--", linewidth=1.7, label=f"TRACC Tx", color=colors["Tx"])
+    ax.plot(pct_for_cdf, obs_tm_cdf_year, linestyle="--", linewidth=1.7, label=f"TRACC Tmoy", color=colors["Tm"])
+    ax.plot(pct_for_cdf, obs_tn_cdf_year, linestyle="--", linewidth=1.7, label=f"TRACC Tn", color=colors["Tn"])
+    
+    # Mise en forme
+    ax.set_title(f"Année complète — CDF Tn_jour / Tmoy_jour / Tx_jour (Modèle vs TRACC)", color="white")
+    ax.set_xlabel("Percentile", color="white")
+    ax.set_ylabel("Température (°C)", color="white")
+    ax.tick_params(colors="white")
+    ax.legend(facecolor="black", ncol=2)
+    ax.set_facecolor("none")
+    
+    st.pyplot(fig)
+    plt.close(fig)
+    
+    # Tableau des percentiles annuels
+    st.write("Tableau des percentiles annuels (Tn_jour / Tmoy_jour / Tx_jour)")
+    
+    # Calcul des percentiles pour les valeurs définies
+    pct_table = percentiles_list  # [10, 25, 50, 75, 90]
+    
+    percentiles_values = {
+        "TRACC_Tn": np.round(np.percentile(Tn_obs_year, pct_table), 2) if Tn_obs_year.size > 0 else np.array([np.nan]*len(pct_table)),
+        "Mod_Tn": np.round(np.percentile(Tn_mod_year, pct_table), 2) if Tn_mod_year.size > 0 else np.array([np.nan]*len(pct_table)),
+        "TRACC_Tm": np.round(np.percentile(Tm_obs_year, pct_table), 2) if Tm_obs_year.size > 0 else np.array([np.nan]*len(pct_table)),
+        "Mod_Tm": np.round(np.percentile(Tm_mod_year, pct_table), 2) if Tm_mod_year.size > 0 else np.array([np.nan]*len(pct_table)),
+        "TRACC_Tx": np.round(np.percentile(Tx_obs_year, pct_table), 2) if Tx_obs_year.size > 0 else np.array([np.nan]*len(pct_table)),
+        "Mod_Tx": np.round(np.percentile(Tx_mod_year, pct_table), 2) if Tx_mod_year.size > 0 else np.array([np.nan]*len(pct_table)),
+    }
+    
+    tab_annuel = pd.DataFrame({
+        "Percentile": [f"P{p}" for p in pct_table],
+        "TRACC_Tn": percentiles_values["TRACC_Tn"],
+        "Mod_Tn": percentiles_values["Mod_Tn"],
+        "TRACC_Tm": percentiles_values["TRACC_Tm"],
+        "Mod_Tm": percentiles_values["Mod_Tm"],
+        "TRACC_Tx": percentiles_values["TRACC_Tx"],
+        "Mod_Tx": percentiles_values["Mod_Tx"],
+    })
+    
+    num_cols = tab_annuel.select_dtypes(include=[np.number]).columns
+    tab_annuel[num_cols] = tab_annuel[num_cols].apply(pd.to_numeric, errors="coerce")
+    styler = tab_annuel.style.format({col: "{:.2f}" for col in num_cols})
+    st.dataframe(styler, hide_index=True)
+    
+    # Tableau des différences annuelles
+    st.write("Différences annuelles (Modèle - TRACC)")
+    
+    df_diff_annuel = pd.DataFrame({
+        "Percentile": [f"P{p}" for p in pct_table],
+        "Diff_Tn_jour": percentiles_values["Mod_Tn"] - percentiles_values["TRACC_Tn"],
+        "Diff_Tm_jour": percentiles_values["Mod_Tm"] - percentiles_values["TRACC_Tm"],
+        "Diff_Tx_jour": percentiles_values["Mod_Tx"] - percentiles_values["TRACC_Tx"],
+    })
+    
+    num_cols_diff = ["Diff_Tn_jour", "Diff_Tm_jour", "Diff_Tx_jour"]
+    df_diff_annuel[num_cols_diff] = df_diff_annuel[num_cols_diff].apply(pd.to_numeric, errors="coerce").round(2)
+    
+    df_diff_annuel_styled = (
+        df_diff_annuel.style
+        .background_gradient(cmap="bwr", vmin=vminT, vmax=vmaxT, subset=num_cols_diff)
+        .format({col: "{:.2f}" for col in num_cols_diff})
+    )
+    st.dataframe(df_diff_annuel_styled, hide_index=True)
+
 
     # ============================
     # GRAPHIQUES : Jours chauds et nuits tropicales par mois
@@ -1039,8 +1139,6 @@ if uploaded:
     st.subheader("Résumé comparatif DJC / DJF")
     for p in st.session_state["resume_djc_djf"]:
         st.write("- " + p)
-
-
 
     # ======================================
     #  COURBES DES PERCENTILES PAR MOIS
