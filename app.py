@@ -785,11 +785,11 @@ if uploaded:
     # Concaténation annuelle des données journalières
     Tn_obs_year = np.concatenate(Tn_jour_all) if len(Tn_jour_all) > 0 else np.array([])
     Tm_obs_year = np.concatenate(Tm_jour_all) if len(Tm_jour_all) > 0 else np.array([])
-    Tx_obs_year = np.concatenate(Tx_jour_all) if len(Tx_jour_all) > 0 else np.array[]
+    Tx_obs_year = np.concatenate(Tx_jour_all) if len(Tx_jour_all) > 0 else np.array([])
     
     Tn_mod_year = np.concatenate(Tn_jour_mod_all) if len(Tn_jour_mod_all) > 0 else np.array([])
     Tm_mod_year = np.concatenate(Tm_jour_mod_all) if len(Tm_jour_mod_all) > 0 else np.array([])
-    Tx_mod_year = np.concatenate(Tx_jour_mod_all) if len(Tx_jour_mod_all) > 0 else np.array[]
+    Tx_mod_year = np.concatenate(Tx_jour_mod_all) if len(Tx_jour_mod_all) > 0 else np.array([])
     
     # Calcul des CDF annuelles (0-100%)
     pct_for_cdf = np.linspace(0, 100, 100)
