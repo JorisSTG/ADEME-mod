@@ -899,6 +899,9 @@ if uploaded:
             jours_vague_mod.append(0)
         idx += L
 
+    label_mod = uploaded.name.replace(".csv", "")
+    label_obs = nc_file_sel.name.replace(".nc", "")
+    
     df_vagues = pd.DataFrame({
         "Mois": [mois_noms[m] for m in range(1, 13)],
         label_obs: jours_vague_obs,
