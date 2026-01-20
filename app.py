@@ -474,46 +474,6 @@ if uploaded:
     for p in st.session_state["resume_hist"]:
         st.write("- " + p)
 
-
-    # -------- Précision par créneau horaire --------
-    results_temp = []
-    def rmse_hours(obs_counts, mod_counts):
-        min_len = min(len(obs_counts), len(mod_counts))
-        return np.sqrt(np.nanmean((np.array(obs_counts[:min_len]) - np.array(mod_counts[:min_len]))**2))
-
-    for mois_num in range(1, 13):
-        mois = mois_noms[mois_num]
-        obs_hourly = obs_mois_all[mois_num-1]
-        idx0 = sum(heures_par_mois[:mois_num-1])
-        idx1 = sum(heures_par_mois[:mois_num])
-        mod_hourly = model_values[idx0:idx1]
-        obs_counts = count_hours_in_bins(obs_hourly, bins)
-        mod_counts = count_hours_in_bins(mod_hourly, bins)
-        total_hours = 2*heures_par_mois[mois_num-1]
-        hours_error = sum(abs(np.array(obs_counts) - np.array(mod_counts)))
-        pct_precision = round(100 * (1 - hours_error / total_hours), 2)
-        val_rmse = rmse_hours(obs_counts, mod_counts)
-        results_temp.append({
-            "Mois": mois,
-            "RMSE (heure)": round(val_rmse,2),
-            "Précision (%)": pct_precision
-        })
-
-    df_temp_precision = pd.DataFrame(results_temp)
-    df_temp_precision_styled = df_temp_precision.style \
-        .background_gradient(subset=["Précision (%)"], cmap="RdYlGn", vmin=vminP, vmax=vmaxP, axis=None) \
-        .format({"Précision (%)": "{:.2f}", "RMSE (heure)": "{:.2f}"})
-
-    st.subheader(f"Précision du modèle sur la répartition des durées des plages de température (TRACC +{scenario_sel}/{ville_sel})")
-    st.markdown(
-        """
-        Le RMSE correspond à la moyenne de l’écart absolu entre les valeurs du modèle et celles de la TRACC pour chaque intervalle de température.
-        La précision est calculée à partir de la différence totale d’heures dans chaque intervalle 
-        """,
-        unsafe_allow_html=True
-    )
-    st.dataframe(df_temp_precision_styled, hide_index=True)
-
     # ============================
     #   COURBES Tn / Tmoy / Tx
     # ============================
