@@ -900,7 +900,7 @@ if uploaded:
         idx += L
 
     label_mod = uploaded.name.replace(".csv", "")
-    label_obs = TRACC
+    label_obs = "TRACC"
     
     df_vagues = pd.DataFrame({
         "Mois": [mois_noms[m] for m in range(1, 13)],
