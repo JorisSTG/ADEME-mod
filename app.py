@@ -841,6 +841,84 @@ if uploaded:
     )
     st.dataframe(df_diff_annuel_styled, hide_index=True)
 
+    # --- Fonction nombre de jours de vague ---
+    def nombre_jours_vague(T):
+        T = np.array(T)
+        n = len(T)
+        jours_vague = np.zeros(n, dtype=bool)
+        jours_vague[T >= 25.3] = True
+        i = 0
+        while i < n:
+            if i + 2 < n and np.all(T[i:i+3] >= 23.4):
+                debut = i
+                fin = i + 2
+                j = fin + 1
+                while j < n and T[j] >= 23.4:
+                    fin = j
+                    j += 1
+                prolong = fin + 1
+                compteur = 0
+                while prolong < n and compteur < 2:
+                    if T[prolong] < 22.4:
+                        break
+                    fin = prolong
+                    compteur += 1
+                    prolong += 1
+                jours_vague[debut:fin+1] = True
+                i = fin + 1
+            else:
+                i += 1
+        return int(jours_vague.sum()), jours_vague
+
+    # ---------------- Calcul Tm et nombre de jours de vague sur l'année complète ----------------
+    jours_par_mois = [len(Tx_jour_all[m]) for m in range(12)]
+
+    Tm_obs_all = np.concatenate([
+        (np.array(Tx_jour_all[m]) + np.array(Tn_jour_all[m])) / 2 for m in range(12)
+    ]) if all(len(Tx_jour_all[m])>0 for m in range(12)) else np.array([])
+
+    Tm_mod_all = np.concatenate([
+        (np.array(Tx_jour_mod_all[m]) + np.array(Tn_jour_mod_all[m])) / 2 for m in range(12)
+    ]) if all(len(Tx_jour_mod_all[m])>0 for m in range(12)) else np.array([])
+
+    _, jours_vague_obs_all = nombre_jours_vague(Tm_obs_all) if Tm_obs_all.size else (0, np.array([]))
+    _, jours_vague_mod_all = nombre_jours_vague(Tm_mod_all) if Tm_mod_all.size else (0, np.array([]))
+
+    jours_vague_obs = []
+    jours_vague_mod = []
+
+    idx = 0
+    for L in jours_par_mois:
+        if len(jours_vague_obs_all) >= idx+L:
+            jours_vague_obs.append(int(jours_vague_obs_all[idx:idx+L].sum()))
+        else:
+            jours_vague_obs.append(0)
+        if len(jours_vague_mod_all) >= idx+L:
+            jours_vague_mod.append(int(jours_vague_mod_all[idx:idx+L].sum()))
+        else:
+            jours_vague_mod.append(0)
+        idx += L
+
+    df_vagues = pd.DataFrame({
+        "Mois": [mois_noms[m] for m in range(1, 13)],
+        label_obs: jours_vague_obs,
+        label_mod: jours_vague_mod
+    })
+    st.subheader("Nombre de jours de vague de chaleur par mois")
+    st.dataframe(df_vagues, hide_index=True, use_container_width=True)
+
+    fig, ax = plt.subplots(figsize=(12, 5))
+    x = np.arange(1, 13)
+    ax.bar(x - 0.2, jours_vague_obs, width=0.4, label=label_obs, color=couleur_TRACC)
+    ax.bar(x + 0.2, jours_vague_mod, width=0.4, label=label_mod, color=couleur_modele)
+    ax.set_xlabel("Mois")
+    ax.set_ylabel("Nombre de jours de vague de chaleur")
+    ax.set_title("Nombre de jours de vague de chaleur par mois")
+    ax.set_xticks(x)
+    ax.legend()
+    st.pyplot(fig)
+    plt.close(fig)
+
 
     # ============================
     # GRAPHIQUES : Jours chauds et nuits tropicales par mois
